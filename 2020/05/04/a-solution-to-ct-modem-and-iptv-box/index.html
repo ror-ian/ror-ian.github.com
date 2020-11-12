@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.ianly.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="以下内容仅在杭州电信实测通过，其他地区或运营商主要参考解决思路，根据实际情况做相应调整。  一、这篇记录能够实现哪些功能? 减少硬件设备：弱电箱中无需安装电信光猫、智能电视机在是否安装机顶盒的问题上有选择权 解决家装布线问题，当电视移位、新增电视或投影设备时，通过wifi收看电信iptv电视，且无需申请办理第二个iptv账号 避免使用电信光猫时，受电信下发配置的控制或DNS劫持问题">
+<meta property="og:type" content="article">
+<meta property="og:title" content="解决电信光猫和机顶盒软硬件限制的记录">
+<meta property="og:url" content="https://blog.ianly.com/2020/05/04/a-solution-to-ct-modem-and-iptv-box/index.html">
+<meta property="og:site_name" content="Ian&#39;s Blog">
+<meta property="og:description" content="以下内容仅在杭州电信实测通过，其他地区或运营商主要参考解决思路，根据实际情况做相应调整。  一、这篇记录能够实现哪些功能? 减少硬件设备：弱电箱中无需安装电信光猫、智能电视机在是否安装机顶盒的问题上有选择权 解决家装布线问题，当电视移位、新增电视或投影设备时，通过wifi收看电信iptv电视，且无需申请办理第二个iptv账号 避免使用电信光猫时，受电信下发配置的控制或DNS劫持问题">
+<meta property="og:locale">
+<meta property="og:image" content="https://blog.ianly.com/images/ct_post/ros_sfp_ip.png">
+<meta property="og:image" content="https://blog.ianly.com/images/ct_post/ros_sfp_vlan.png">
+<meta property="og:image" content="https://blog.ianly.com/images/ct_post/ipoe.png">
+<meta property="og:image" content="https://blog.ianly.com/images/ct_post/dhcp_client.png">
+<meta property="og:image" content="https://blog.ianly.com/images/ct_post/dhcp_client_add.png">
+<meta property="og:image" content="https://blog.ianly.com/images/ct_post/dhcp_client_status.png">
+<meta property="og:image" content="https://blog.ianly.com/images/ct_post/route_list.png">
+<meta property="og:image" content="https://blog.ianly.com/images/ct_post/iptv.png">
+<meta property="article:published_time" content="2020-05-04T14:08:11.000Z">
+<meta property="article:modified_time" content="2020-05-27T05:59:56.516Z">
+<meta property="article:author" content="Ian Li">
+<meta property="article:tag" content="modem">
+<meta property="article:tag" content="iptv">
+<meta property="article:tag" content="it">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.ianly.com/images/ct_post/ros_sfp_ip.png">
+
+<link rel="canonical" href="https://blog.ianly.com/2020/05/04/a-solution-to-ct-modem-and-iptv-box/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>解决电信光猫和机顶盒软硬件限制的记录 | Ian's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Ian's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.ianly.com/2020/05/04/a-solution-to-ct-modem-and-iptv-box/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ian Li">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ian's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          解决电信光猫和机顶盒软硬件限制的记录
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-05-04 22:08:11" itemprop="dateCreated datePublished" datetime="2020-05-04T22:08:11+08:00">2020-05-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-05-27 13:59:56" itemprop="dateModified" datetime="2020-05-27T13:59:56+08:00">2020-05-27</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>以下内容仅在杭州电信实测通过，其他地区或运营商主要参考解决思路，根据实际情况做相应调整。</p>
+</blockquote>
+<h2 id="一、这篇记录能够实现哪些功能"><a href="#一、这篇记录能够实现哪些功能" class="headerlink" title="一、这篇记录能够实现哪些功能?"></a>一、这篇记录能够实现哪些功能?</h2><ul>
+<li>减少硬件设备：弱电箱中无需安装电信光猫、智能电视机在是否安装机顶盒的问题上有选择权</li>
+<li>解决家装布线问题，当电视移位、新增电视或投影设备时，通过wifi收看电信iptv电视，且无需申请办理第二个iptv账号</li>
+<li>避免使用电信光猫时，受电信下发配置的控制或DNS劫持问题</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="二、设备情况"><a href="#二、设备情况" class="headerlink" title="二、设备情况"></a>二、设备情况</h2><ul>
+<li>电信光猫：中兴F650，天翼网关3.0，软件版本2.0.3 P1T3（可彻底破解，取得root权限和telecomadmin密码）</li>
+<li>机顶盒：华为EC6106V6（可彻底破解，所有密码可知，取得adb root权限）</li>
+<li>双模Pon Stick光模块（取消光猫必须配置，只解决机顶盒问题非必须。搜索淘宝按销量排序）</li>
+<li>ROS路由（非必须，亦可使用刷openwrt的路由，但路由必须有SFP接口）</li>
+</ul>
+<h2 id="三、解决电信光猫"><a href="#三、解决电信光猫" class="headerlink" title="三、解决电信光猫"></a>三、解决电信光猫</h2><blockquote>
+<p>核心逻辑：杭州电信仅验证用户LOID，不验证光猫的设备标识和MAC地址，意味着硬件设备可以被替换。</p>
+</blockquote>
+<h3 id="1-如何获得用户LOID"><a href="#1-如何获得用户LOID" class="headerlink" title="1. 如何获得用户LOID"></a>1. 如何获得用户LOID</h3><p>用户LOID是存储在光猫中的，只要取得光猫的telecomadmin用户权限，即可查询获得。</p>
+<p>杭州电信用户普遍安装的是中兴F650的天翼2.0或3.0网关，软件版本以2.0.0 P1T1或2.0.3 P1T3较为多见。其中天翼2.0或软件版本为2.0.0 P1T1的光猫，破解方法较为简单，初期使用U盘备份漏洞，后来已有软件可直接通过普通useradmin用户查询到实时的telecomadmin密码。因此这里主要记录一下软件版本为2.0.3 P1T3的天翼3.0网关。</p>
+<h4 id="a-走过的弯路"><a href="#a-走过的弯路" class="headerlink" title="a) 走过的弯路"></a>a) 走过的弯路</h4><ul>
+<li>U盘备份法，通过Fiddler 4下断点获取db_user_cfg.xml文件，但routerpassview暂不支持该版本文件，无法解出明文密码</li>
+<li>通过TelnetONU工具开启telent服务，但未搜到可用版本</li>
+</ul>
+<h4 id="b-不拆机不TTL的破解方法"><a href="#b-不拆机不TTL的破解方法" class="headerlink" title="b) 不拆机不TTL的破解方法"></a>b) 不拆机不TTL的破解方法</h4><p>经查询发现，中兴F650上的reset键，并不等同于factory return，设备reset后，telecomadmin复位为默认密码，但系统仍然保留了LOID信息，这就留下了漏洞。</p>
+<p>因为reset光猫会重启，重启后会自动接通网络并根据保留的LOID信息重新下发配置，此时也会自动修改telecomadmin密码，因此reset前首先要<u><strong>将光纤拔掉断网</strong></u>。以下是具体步骤：</p>
+<ul>
+<li>拔掉光纤</li>
+<li>按住reset键，看到所有led灯闪烁后继续按住，直至led灯常亮后松手</li>
+<li>光猫重启后，使用telecomadmin默认密码nE7jA%5m访问<a href="http://192.168.1.1" target="_blank" rel="noopener">http://192.168.1.1</a></li>
+<li>登录后记下LOID</li>
+<li>继续记录下vlan信息，包括连接名称和vlan id，通常是这样的：<ul>
+<li>1_TR069_VOICE_R_VID_46</li>
+<li>2_INTERNET_R_VID_41</li>
+<li>3_Other_B_VID_43</li>
+</ul>
+</li>
+</ul>
+<p>此时目的已经实现，但我们难得拿到了telecomadmin密码，不要止步于此：</p>
+<ul>
+<li>继续打开<br><a href="http://192.168.1.1:8080/hidden_version_switch.gch" target="_blank" rel="noopener">http://192.168.1.1:8080/hidden_version_switch.gch</a><br>选择Default Version，因为该版本下默认开启telnet服务。密码仍然是默认密码</li>
+<li>光猫重启后，使用telnet登录192.168.1.1，端口号23，用户名root，密码Zte521</li>
+<li>执行<br><code>cp /opt/upt/framework/saf/rootfs/usr/sbin/telnetd /usr/sbin/</code><br>将telnetd文件替换成标准版本，这样切换回地区版本时，telnet依旧开启，且密码不会变换</li>
+<li>再次打开<br><a href="http://192.168.1.1:8080/hidden_version_switch.gch" target="_blank" rel="noopener">http://192.168.1.1:8080/hidden_version_switch.gch</a><br>选择原区域，例如Zhejiang Version</li>
+<li>光猫重启后，打开<br><a href="http://192.168.1.1:8080/return2factory.gch" target="_blank" rel="noopener">http://192.168.1.1:8080/return2factory.gch</a><br>输入默认密码，提交后光猫会恢复为出厂设置，所有信息都会被清空，包括LOID信息</li>
+<li>光猫重启后，打开<br><a href="http://192.168.1.1" target="_blank" rel="noopener">http://192.168.1.1</a><br>通过右下角的装维入口（字较小），重新进行设备注册，输入刚才记录下来的LOID并提交，成功后会下发所有业务配置，重启后恢复上网，telecomadmin密码随之改变</li>
+</ul>
+<p>此后仍然可以使用telnet方式访问192.168.1.1，用户名和密码均为root。登录后可使用以下命令修改telecomadmin的密码：</p>
+<pre>
+sendcmd 1 DB set DevAuthInfo 0 Pass yourpassword  
+sendcmd 1 DB save  
+sendcmd 1 DB saveasy  
+</pre>
+
+<h4 id="c-修改桥接模式的简单方法"><a href="#c-修改桥接模式的简单方法" class="headerlink" title="c) 修改桥接模式的简单方法"></a>c) 修改桥接模式的简单方法</h4><p>打开<br><a href="http://192.168.1.1:8080/bridge_route.gch" target="_blank" rel="noopener">http://192.168.1.1:8080/bridge_route.gch</a><br>选择桥接复原</p>
+<h3 id="2-安装双模Pon-Stick光模块"><a href="#2-安装双模Pon-Stick光模块" class="headerlink" title="2. 安装双模Pon Stick光模块"></a>2. 安装双模Pon Stick光模块</h3><p>光模块自身有一个管理地址是<a href="http://192.168.1.1" target="_blank" rel="noopener">http://192.168.1.1</a>，因此在插入ROS路由的SFP接口后，我们在ip address中为该接口配置一个ip地址为192.168.1.2，方便以后的访问和管理。<br><img src="/images/ct_post/ros_sfp_ip.png" alt="SFP接口的IP配置">  </p>
+<ul>
+<li>如果此前SFP接口和其他ethernet接口在同一个bridge中，需要移除</li>
+<li>访问<a href="http://192.168.1.1" target="_blank" rel="noopener">http://192.168.1.1</a>，用户admin，密码system登录（也可咨询卖家具体用户名密码）</li>
+<li>“系统管理”–“GPON设定”中填写LOID，密码000000</li>
+<li>“状态”–“PON”中查询GPON状态，如果显示ONU状态O5，LOID状态认证成功，即代表可用，光猫已顺利被Pon Stick取代</li>
+</ul>
+<p>回到ROS中，在SFP接口下创建2个vlan，参照光猫中记录的具体信息，如下图：<br><img src="/images/ct_post/ros_sfp_vlan.png" alt="SFP接口的VLAN配置">  </p>
+<ul>
+<li>配置PPPoE Client，接口选择2_INTERNET_R_VID_41</li>
+<li>在Interface List中，将SFP接口和PPPoE Client加入WAN list</li>
+</ul>
+<p>至此，电信光猫问题解决完毕。</p>
+<h2 id="四、解决电信机顶盒"><a href="#四、解决电信机顶盒" class="headerlink" title="四、解决电信机顶盒"></a>四、解决电信机顶盒</h2><blockquote>
+<p>核心逻辑：杭州电信机顶盒使用IPoE方式认证DHCP，不验证机顶盒的SN和MAC地址，意味着建立iptv网络通道的设备可以被替换。</p>
+</blockquote>
+<p>杭州电信用户普遍安装的机顶盒有华为和中兴两个品牌，两者大同小异，默认密码一致，无论外壳是否有无线网络标记，实际均自带wifi模块，可以无线上网。这里主要记录华为EC6106V6机顶盒的破解过程，下文提到的华为STB工具并非必须，除获取节目列表以外的步骤，中兴机顶盒均可参考。</p>
+<h3 id="1-如何在路由上实现IPoE验证"><a href="#1-如何在路由上实现IPoE验证" class="headerlink" title="1. 如何在路由上实现IPoE验证"></a>1. 如何在路由上实现IPoE验证</h3><h4 id="a-一些基础信息"><a href="#a-一些基础信息" class="headerlink" title="a) 一些基础信息"></a>a) 一些基础信息</h4><ul>
+<li>机顶盒“设置”的默认管理密码是10000</li>
+<li>网络连接下可以看到itv用户名，默认密码是111111</li>
+<li>IPoE的本质是DHCP+OPTION扩展字段认证，具体对应option 60</li>
+</ul>
+<h4 id="b-针对DHCP认证信息抓包"><a href="#b-针对DHCP认证信息抓包" class="headerlink" title="b) 针对DHCP认证信息抓包"></a>b) 针对DHCP认证信息抓包</h4><p>ROS路由有个优势，Tools项下自带Packet Sniffer抓包工具：</p>
+<ul>
+<li>将机顶盒插入任意接口</li>
+<li>将该接口与3_Other_B_VID_43的vlan接口桥接</li>
+<li>重启机顶盒后，机顶盒会自动尝试认证DHCP获取IP，此时对3_Other_B_VID_43接口抓包</li>
+<li>从Files中，下载抓包文件</li>
+<li>使用Wireshark软件打开抓包文件进行分析，查找DHCP Discover信息</li>
+<li>将Option 60信息记录下来（部分信息隐藏，不影响阅读）<br><img src="/images/ct_post/ipoe.png" alt="IPOE Sniffer">  </li>
+<li>红框中的3c代表option 60，38代表认证信息的长度。蓝色内容即为具体的16进制IPoE认证信息，该信息是否经过加密都不影响使用，直接记录下来，去除空格。</li>
+</ul>
+<h4 id="c-在ROS中添加DHCP认证信息"><a href="#c-在ROS中添加DHCP认证信息" class="headerlink" title="c) 在ROS中添加DHCP认证信息"></a>c) 在ROS中添加DHCP认证信息</h4><ul>
+<li>打开IP–DHCP Client</li>
+<li>在第二个选项卡“DHCP Client Options”下新增一个Code为60，Value为抓包获得的IPoE信息（前面加上0x），Name随意<br><img src="/images/ct_post/dhcp_client.png" alt="DHCP Client Settings">  </li>
+<li>在第一个选项卡“DHCP Client”下为vlan接口3_Other_B_VID_43新增DHCP，注意Add Default Route选择no，Advanced中新增DHCP Options，选择刚才新增的Code 60<br><img src="/images/ct_post/dhcp_client_add.png" alt="DHCP Client Settings">  </li>
+<li>应用后，在Status中可以看到成功获取了IP地址<br><img src="/images/ct_post/dhcp_client_status.png" alt="DHCP Client Settings">  </li>
+</ul>
+<h3 id="2-在ROS中配置路由"><a href="#2-在ROS中配置路由" class="headerlink" title="2. 在ROS中配置路由"></a>2. 在ROS中配置路由</h3><p>将vlan接口3_Other_B_VID_43添加到WAN list中，因为缺少路由信息，访问iptv节目的流量并不会经过该接口，因此需要手动增加以下路由信息，gateway设置为10.200.0.1：  </p>
+<pre>
+61.130.56.0/24  
+61.130.57.0/24  
+115.233.1.0/24  
+115.233.40.0/24  
+115.233.41.0/24  
+115.233.200.0/24  
+122.229.6.0/24  
+122.229.17.0/24  
+220.191.136.0/24  
+</pre>
+<p><img src="/images/ct_post/route_list.png" alt="Route List">  </p>
+<h3 id="3-其他配置"><a href="#3-其他配置" class="headerlink" title="3. 其他配置"></a>3. 其他配置</h3><p>此时在机顶盒设置中，将网络连接方式设置为家里的无线网络，即可正常登录并播放电视节目。</p>
+<p>在其他设备中，可以通过第三方播放器，直接打开rtsp单播地址的方式，观看直播节目：</p>
+<ul>
+<li>节目地址的获取，除了利用网上公布的播放列表外，可以采取Fiddler 4抓包或华为STB工具导出两种方式</li>
+<li>在使用华为STB工具连接前，需在机顶盒个性化设置中，勾选“允许Monitor”连接，默认用户名huawei，密码.287aW（注意有个点）或28780808，ip可以在网络连接中看到</li>
+<li>华为STB工具连接成功后，可以直接导出rtsp地址列表，并通过vim或notepad++用正则表达式创建自己的xspf播放列表</li>
+<li>该工具能够读取到密码信息以星号显示，使用xpass工具可查看具体密码内容</li>
+<li>该工具还能够开启机顶盒的adb连接，经测试adb root可用，使得通过adb在机顶盒中安装其他app成为可能</li>
+<li>下图是在电脑中导入xspf播放列表后流畅观看高清iptv节目的画面<br><img src="/images/ct_post/iptv.png" alt="DHCP Client Settings">  </li>
+</ul>
+<p>目前基于android系统的智能电视或投影，均可采取第三方播放器+播放列表的方式，直接观看iptv节目，避免了布线和安装机顶盒的麻烦，且无需再忍受走普通互联网线路卡顿的直播源。</p>
+<p>在外通过vpn连接家庭网络，可实现在任何地方观看iptv节目。</p>
+<h2 id="五、待解决的问题"><a href="#五、待解决的问题" class="headerlink" title="五、待解决的问题"></a>五、待解决的问题</h2><ul>
+<li>光模块工作时，温度在55至62度，发热量可观</li>
+<li>机顶盒问题的解决，虽然能够在第三方设备任意观看直播节目，但回看节目单的获取仍然依赖EPG源，暂无解决办法</li>
+<li>尝试过adb pull获得iptv app的方法，但不能直接安装或adb push至app目录，存在签名问题</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/modem/" rel="tag"># modem</a>
+              <a href="/tags/iptv/" rel="tag"># iptv</a>
+              <a href="/tags/it/" rel="tag"># it</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2020/08/15/use-basic-excel-functions-and-vba-in-solving-problems/" rel="next" title="熟练使用Excel基本功可以解决怎样的问题？">
+      熟练使用Excel基本功可以解决怎样的问题？ <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E8%BF%99%E7%AF%87%E8%AE%B0%E5%BD%95%E8%83%BD%E5%A4%9F%E5%AE%9E%E7%8E%B0%E5%93%AA%E4%BA%9B%E5%8A%9F%E8%83%BD"><span class="nav-text">一、这篇记录能够实现哪些功能?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E8%AE%BE%E5%A4%87%E6%83%85%E5%86%B5"><span class="nav-text">二、设备情况</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E8%A7%A3%E5%86%B3%E7%94%B5%E4%BF%A1%E5%85%89%E7%8C%AB"><span class="nav-text">三、解决电信光猫</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%A6%82%E4%BD%95%E8%8E%B7%E5%BE%97%E7%94%A8%E6%88%B7LOID"><span class="nav-text">1. 如何获得用户LOID</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#a-%E8%B5%B0%E8%BF%87%E7%9A%84%E5%BC%AF%E8%B7%AF"><span class="nav-text">a) 走过的弯路</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#b-%E4%B8%8D%E6%8B%86%E6%9C%BA%E4%B8%8DTTL%E7%9A%84%E7%A0%B4%E8%A7%A3%E6%96%B9%E6%B3%95"><span class="nav-text">b) 不拆机不TTL的破解方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#c-%E4%BF%AE%E6%94%B9%E6%A1%A5%E6%8E%A5%E6%A8%A1%E5%BC%8F%E7%9A%84%E7%AE%80%E5%8D%95%E6%96%B9%E6%B3%95"><span class="nav-text">c) 修改桥接模式的简单方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%AE%89%E8%A3%85%E5%8F%8C%E6%A8%A1Pon-Stick%E5%85%89%E6%A8%A1%E5%9D%97"><span class="nav-text">2. 安装双模Pon Stick光模块</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E8%A7%A3%E5%86%B3%E7%94%B5%E4%BF%A1%E6%9C%BA%E9%A1%B6%E7%9B%92"><span class="nav-text">四、解决电信机顶盒</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%A6%82%E4%BD%95%E5%9C%A8%E8%B7%AF%E7%94%B1%E4%B8%8A%E5%AE%9E%E7%8E%B0IPoE%E9%AA%8C%E8%AF%81"><span class="nav-text">1. 如何在路由上实现IPoE验证</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#a-%E4%B8%80%E4%BA%9B%E5%9F%BA%E7%A1%80%E4%BF%A1%E6%81%AF"><span class="nav-text">a) 一些基础信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#b-%E9%92%88%E5%AF%B9DHCP%E8%AE%A4%E8%AF%81%E4%BF%A1%E6%81%AF%E6%8A%93%E5%8C%85"><span class="nav-text">b) 针对DHCP认证信息抓包</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#c-%E5%9C%A8ROS%E4%B8%AD%E6%B7%BB%E5%8A%A0DHCP%E8%AE%A4%E8%AF%81%E4%BF%A1%E6%81%AF"><span class="nav-text">c) 在ROS中添加DHCP认证信息</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%9C%A8ROS%E4%B8%AD%E9%85%8D%E7%BD%AE%E8%B7%AF%E7%94%B1"><span class="nav-text">2. 在ROS中配置路由</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%85%B6%E4%BB%96%E9%85%8D%E7%BD%AE"><span class="nav-text">3. 其他配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E5%BE%85%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">五、待解决的问题</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ian Li</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="author" itemprop="copyrightHolder">Ian Li</span>
+</div>
+  <div class="powered-by"> 
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

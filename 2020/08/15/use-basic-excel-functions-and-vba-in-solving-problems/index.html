@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.ianly.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="最近在解决一个Excel需求的过程中，遇到的一些细节比较典型，总算断断续续地挤出时间梳理记录了下来。如果有同学能从中受到启发，就达到了记录的目的。为了避免泄露公司信息，所有日期和敏感数据均做了处理。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="熟练使用Excel基本功可以解决怎样的问题？">
+<meta property="og:url" content="https://blog.ianly.com/2020/08/15/use-basic-excel-functions-and-vba-in-solving-problems/index.html">
+<meta property="og:site_name" content="Ian&#39;s Blog">
+<meta property="og:description" content="最近在解决一个Excel需求的过程中，遇到的一些细节比较典型，总算断断续续地挤出时间梳理记录了下来。如果有同学能从中受到启发，就达到了记录的目的。为了避免泄露公司信息，所有日期和敏感数据均做了处理。">
+<meta property="og:locale">
+<meta property="og:image" content="https://blog.ianly.com/images/entries/2020-08-14-20-42-54.png">
+<meta property="og:image" content="https://blog.ianly.com/images/entries/2020-08-14-21-13-20.png">
+<meta property="og:image" content="https://blog.ianly.com/images/entries/2020-08-14-21-17-57.png">
+<meta property="og:image" content="https://blog.ianly.com/images/entries/2020-08-15-07-42-18.png">
+<meta property="og:image" content="https://blog.ianly.com/images/entries/2020-08-15-07-57-42.png">
+<meta property="og:image" content="https://blog.ianly.com/images/entries/2020-08-15-07-59-08.png">
+<meta property="og:image" content="https://blog.ianly.com/images/entries/2020-08-15-08-01-34.png">
+<meta property="og:image" content="https://blog.ianly.com/images/entries/2020-08-15-08-25-10.png">
+<meta property="og:image" content="https://blog.ianly.com/images/entries/2020-08-15-08-26-15.png">
+<meta property="og:image" content="https://blog.ianly.com/images/entries/2020-08-15-08-42-43.png">
+<meta property="og:image" content="https://blog.ianly.com/images/entries/2020-08-15-08-39-56.png">
+<meta property="article:published_time" content="2020-08-15T01:09:27.000Z">
+<meta property="article:modified_time" content="2020-08-15T01:09:27.000Z">
+<meta property="article:author" content="Ian Li">
+<meta property="article:tag" content="excel">
+<meta property="article:tag" content="vba">
+<meta property="article:tag" content="sort">
+<meta property="article:tag" content="pdf">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.ianly.com/images/entries/2020-08-14-20-42-54.png">
+
+<link rel="canonical" href="https://blog.ianly.com/2020/08/15/use-basic-excel-functions-and-vba-in-solving-problems/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>熟练使用Excel基本功可以解决怎样的问题？ | Ian's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Ian's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.ianly.com/2020/08/15/use-basic-excel-functions-and-vba-in-solving-problems/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ian Li">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ian's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          熟练使用Excel基本功可以解决怎样的问题？
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-08-15 09:09:27" itemprop="dateCreated datePublished" datetime="2020-08-15T09:09:27+08:00">2020-08-15</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>最近在解决一个Excel需求的过程中，遇到的一些细节比较典型，总算断断续续地挤出时间梳理记录了下来。如果有同学能从中受到启发，就达到了记录的目的。为了避免泄露公司信息，所有日期和敏感数据均做了处理。</p>
+</blockquote>
+<a id="more"></a>
+
+<h2 id="一、问题描述"><a href="#一、问题描述" class="headerlink" title="一、问题描述"></a>一、问题描述</h2><ul>
+<li>业务系统在自动推送凭证信息时，每个凭证内的会计分录没有按照财务规范的借贷顺序排列。凭证若如此归档，显得不专业。</li>
+<li>分录的现有排列顺序非常随机，需要按照凭证序号进行分组，并采用十几种指定序列重新排序。</li>
+<li>打印模块不能实现自动重排或实现成本较高。但可以将分录导出为Excel文件。</li>
+<li>对Excel文件重新排序后，按照指定格式，批量打印凭证。</li>
+</ul>
+<p>由于分录数量大于7000条，凭证数量大于2000个，人工解决显然是不明智的。如果单纯用程序解决这个问题，自然不难。但对于日常仅使用Excel基本功能和函数，很少接触编程的同学来说，乍一看可能觉得无法完成。</p>
+<h2 id="二、解决思路"><a href="#二、解决思路" class="headerlink" title="二、解决思路"></a>二、解决思路</h2><blockquote>
+<p>当把一个复杂问题拆到最小，解决方案一般就会自动浮现。</p>
+</blockquote>
+<p>既然排除了纯粹编程的方法，我们可以试着将问题拆解为Excel内置功能和函数能够解决的小问题（例如辅助列、判断和排序），只在必要时使用尽量简单的内置VBA程序（例如循环）。</p>
+<h3 id="1-筛选"><a href="#1-筛选" class="headerlink" title="1. 筛选"></a>1. 筛选</h3><ul>
+<li>系统导出的凭证分录，是一段时间内的所有内容，包括不需要重新排序的凭证分录。观察发现，这部分凭证一定会包含两种科目：唯一类型和不唯一类型。通过创建辅助列，使用countif函数或vlookup函数在指定序列中查找唯一类型的科目编码，对返回结果为false或n/a（error）的凭证编号进行记录，并将该凭证下的不唯一类型科目做标记后（同样可以使用vlookup配合if和iserror函数），筛选删除。</li>
+</ul>
+<h3 id="2-分类和分组"><a href="#2-分类和分组" class="headerlink" title="2. 分类和分组"></a>2. 分类和分组</h3><ul>
+<li>Excel自带“自定义排序”的功能，但这次我们不会使用。因为不同的凭证种类，具有同样编号的科目分录顺序也不同，例如数字1、2、3、4在A类凭证中，分录排序为134；在B类凭证中，排序为231，也即数字1可能排在首位，也可能排在末位。使用单一自定义序列的方法，不易处理。所幸大部分凭证有一个特点：凭证包含唯一科目编码（类似上述A类凭证中的唯一编号数字4），或具有特殊的摘要。因此，可以继续使用辅助列、vlookup、countif和*号通配符进行查找分类，分类后使用if函数给予不同的顺序权重。</li>
+<li>凭证分组问题，虽然可以通过“主要关键字”和“次要关键字”来解决，我一般习惯使用&amp;符号连接字符串后直接排序，更加直观不易出错。</li>
+</ul>
+<h3 id="3-指定格式批量打印"><a href="#3-指定格式批量打印" class="headerlink" title="3. 指定格式批量打印"></a>3. 指定格式批量打印</h3><ul>
+<li>按照最终的凭证格式，排版制作工作表是最基础的Excel操作。</li>
+<li>凭证格式制作完成后，可以选择在一个工作簿中通过多工作表或分页符来生成所有凭证文件，但本次处理的凭证数量大于2000个，并不适合放在一个文件中。最佳方案是将每一份凭证保存为一页或多页的pdf文件，并按需要对多个pdf文件进行批量合并。</li>
+<li>将正确排序后的凭证及科目内容，逐行填入到工作表中有两种方法，一是灵活运用match、index和offset函数；二是VBA的for循环语句。一般情况下，在学校计算机课程中稍微注意听讲的同学都能理解和使用for语句。如果使用match等函数填写表单，在处理多页凭证时比较麻烦，而且最终仍要通过for循环语句进行打印，因此直接使用for循环语句来填写工作表并打印。</li>
+</ul>
+<h3 id="4-其他问题"><a href="#4-其他问题" class="headerlink" title="4. 其他问题"></a>4. 其他问题</h3><ul>
+<li>因为凭证数量庞大，且由系统导出，在实际操作以前可能无法对各种可能性及特殊情况考虑的面面俱到。但通过上述推演，相信可以解决95%以上的问题，所以值得尝试。</li>
+<li>后续操作时也确实遇到了意外情况，其中最特殊的是包含多次借贷分录的超过20页的单个凭证。此类凭证只有3种科目编码，反复成对出现，只能通过借贷金额的平衡进行分组。解决这个问题时不得不使用VBA程序来穷举，但也只需要使用最基础的if和for语句。</li>
+</ul>
+<h3 id="5-所需知识汇总"><a href="#5-所需知识汇总" class="headerlink" title="5. 所需知识汇总"></a>5. 所需知识汇总</h3><ul>
+<li>辅助列（替代程序中的数组变量）</li>
+<li>if函数、countif函数和iserror函数（部分替代程序中的判断语句）</li>
+<li>vlookup函数（部分替代程序中的循环查找语句）</li>
+<li>*号通配符和&amp;连接字符</li>
+<li>VBA程序的if和for语句的最基本使用</li>
+</ul>
+<p>既然理论上可以使用Excel的基本功解决问题，接下来就可以在正确的方向上投入精力逐步处理细节问题。</p>
+<h2 id="三、具体操作"><a href="#三、具体操作" class="headerlink" title="三、具体操作"></a>三、具体操作</h2><h3 id="1-确定排序种类"><a href="#1-确定排序种类" class="headerlink" title="1. 确定排序种类"></a>1. 确定排序种类</h3><p>整理后需要处理的凭证有12种，涉及17个科目编码，每种凭证包含2到5个独立的科目编码，例如：</p>
+<pre>
+类型1          类型2           类型3
+11220101       220203         1405010301 
+6001010301     2221010101     220203
+2221010201     6401010104
+6401010104     220201
+1406010301
+</pre>
+
+<p>我们是否需要设计12种排序方案呢？并不需要，而且这样设计不利于问题的简化。通过整理不同类型凭证中的科目编码关系，在大多数情况下，可以使用以下序列和权重进行无脑排序：</p>
+<pre>
+科目编码    权重
+100201      11
+11220101    12
+6001010301  13
+2221010201  14
+14050106    15
+64010102    16
+220203      17
+2221010101  18
+6401010104  19
+14050101    20
+220201      21
+1406010301  22
+1405010301  23
+22020401    24
+22020402    25
+100202      26
+66030906    27
+</pre>
+
+<p>以上序列的特殊情况：</p>
+<ul>
+<li>特殊情况在单个凭证中不会同时出现，因此可以设定同一权重。</li>
+<li>摘要包含“付款单过账”时，科目编码100201（权重11）需要排在科目编码220201（权重21）后面，此时可以变更100201的权重为99。</li>
+<li>摘要包含“采购入库”时，科目编码220203（权重17）需要排在科目编码1405010301（权重23）后面，此时可以变更220203的权重为99。</li>
+<li>摘要包含“库存调拨”时，凭证中的借贷科目编码均为14050101，按照“一借一贷”的原则，将贷方金额大于0的分录权重变更为99。</li>
+<li>摘要包含“费用预提”时，属于特殊情况，后面再另行处理。</li>
+</ul>
+<h3 id="2-删除无关凭证"><a href="#2-删除无关凭证" class="headerlink" title="2. 删除无关凭证"></a>2. 删除无关凭证</h3><p>搞清科目编码的范围后，就可以将无关凭证识别出来了。</p>
+<ul>
+<li>确认需要输入公式的单元格为“常规”格式（“文本”单元格中的公式不会生效）。</li>
+<li>将“科目编码”列通过“数据”-“分列”的方法批量转换为数字。</li>
+<li>创建名称为“sort”的新工作表，按顺序在A列录入科目编码，B列录入权重数字</li>
+<li>在分录表中新建辅助列1，公式如下（手动换行方便在手机端显示，实际为一行）：</li>
+</ul>
+<pre>
+=IF(ISERROR(VLOOKUP(L2,sort!$A$1:$B$17,2,FALSE)),
+ C2&E2,VLOOKUP(L2,sort!$A$1:$B$17,2,FALSE))
+</pre>
+
+<ul>
+<li>新建辅助列2，公式如下：</li>
+</ul>
+<pre>
+=COUNTIF(M:M,C2&E2)
+</pre>
+
+<ul>
+<li>此时无关凭证的分录均已被标记，将大于0的标记筛选后全部删除即可。标记结果如图（手机浏览时应该可以直接放大页面查看）：<br><img src="/images/entries/2020-08-14-20-42-54.png" alt="找出无关凭证"></li>
+</ul>
+<h3 id="3-判断权重并排序"><a href="#3-判断权重并排序" class="headerlink" title="3. 判断权重并排序"></a>3. 判断权重并排序</h3><ul>
+<li>按照权重设计思路，直接给出排序辅助列公式如下：</li>
+</ul>
+<pre>
+=C2&E2&"-"&IF(OR(AND(OR(COUNTIF(L2,"100201"),COUNTIF(L2,"220203")),
+ OR(COUNTIF(K2,"付款单过账*"),COUNTIF(K2,"采购入库*"))),
+ AND(COUNTIF(L2,"14050101"),COUNTIF(K2,"库存调拨*"),S2>0)),
+ 99,VLOOKUP(L2,sort!$A$1:$B$17,2,FALSE))
+</pre>
+
+<ul>
+<li><p>结果如图：<br><img src="/images/entries/2020-08-14-21-13-20.png" alt="权重排序"></p>
+</li>
+<li><p>直接将辅助列升序排列即可。</p>
+</li>
+</ul>
+<h3 id="4-特殊情况排序"><a href="#4-特殊情况排序" class="headerlink" title="4. 特殊情况排序"></a>4. 特殊情况排序</h3><ul>
+<li>将涉及“费用预提”的凭证筛选出来，单独放置在一个工作表中操作。</li>
+<li>以0435号凭证为例，大家就知道是怎么回事了，它的分录条目是138个：<br><img src="/images/entries/2020-08-14-21-17-57.png" alt="特殊凭证0435"></li>
+<li>显然，此前的权重排序法在这里是完全无效的。并且存在科目编码220203与14050106、220203与64010102两个一组，或科目编码220203与14050106、64010102三个一组的情况。</li>
+<li>通过观察，借贷金额都是唯一的，先利用这一点创建4个辅助列，将两个一组的情况筛选出来排序：<br><img src="/images/entries/2020-08-15-07-42-18.png" alt="辅助排序"></li>
+<li>辅助列的具体作用及公式如下：</li>
+</ul>
+<pre>
+'辅助列1 找出原币金额唯一的科目编码标记为tbc（无与之匹配的借贷金额）
+=IF(COUNTIF(S:S,S2)=1,"tbc",2)
+
+'辅助列2 将科目编码的权重按照1、2、3设定
+=IF(L2=220203,3,IF(L2=14050106,1,2))
+
+'辅助列3 将tbc标记的其中一个科目编码用唯一行号标记
+=IF(AND(M2="tbc",L2=220203),ROW(),"")
+
+'辅助列4 两个一组或三个一组的最终排序编号
+=IF(M2="found",C2&E2&"-"&O2&N2,C2&E2&"-"&S2&"-"&N2)
+</pre>
+
+<ul>
+<li>以“辅助列1”为主要关键字，“科目编码”为次要关键字进行升序排序：<br><img src="/images/entries/2020-08-15-07-57-42.png" alt="关键字排序"></li>
+<li>使用快捷键“Ctrl + F11”打开VBA界面，用代码穷举三个一组的匹配情况（关键代码只有几行）：</li>
+</ul>
+<pre>
+Sub find_entry_seq()
+    '权重1的科目编码范围
+    For x_cell = 165 To 193
+        a_value = Worksheets("seq").Range("S" & x_cell)
+        '权重2的科目编码范围
+        For y_cell = 194 To 222
+            b_value = Worksheets("seq").Range("S" & y_cell)
+            ab_value = a_value + b_value
+            '权重3的科目编码范围
+            For z_cell = 136 To 164
+                c_value = Worksheets("seq").Range("S" & z_cell)
+                '因为Excel选项的默认精度可能会导致尾差，此处用范围代替=0
+                If Abs(ab_value - c_value) < 0.5 Then
+                    Worksheets("seq").Range("O" & x_cell) = Worksheets("seq").Range("O" & z_cell)
+                    Worksheets("seq").Range("O" & y_cell) = Worksheets("seq").Range("O" & z_cell)
+                    Worksheets("seq").Range("O" & z_cell) = Worksheets("seq").Range("O" & z_cell)
+                    Worksheets("seq").Range("M" & x_cell) = "found"
+                    Worksheets("seq").Range("M" & y_cell) = "found"
+                    Worksheets("seq").Range("M" & z_cell) = "found"
+                    Exit For
+                End If
+            Next z_cell
+        Next y_cell
+   Next x_cell
+End Sub
+</pre>
+
+<ul>
+<li>按下F5执行VBA程序后，所有分录的排序权重就配置好了：<br><img src="/images/entries/2020-08-15-07-59-08.png" alt="VBA排序后"></li>
+<li>将辅助列排序后，最终排序结果符合预期（两个一组或三个一组）：<br><img src="/images/entries/2020-08-15-08-01-34.png" alt="最终排序"></li>
+<li>至此，排序工作全部完成。</li>
+</ul>
+<h3 id="5-打印输出"><a href="#5-打印输出" class="headerlink" title="5. 打印输出"></a>5. 打印输出</h3><ul>
+<li>凭证中包含人民币和美元两种货币，首先制作两种格式的打印模板。</li>
+<li>人民币模板：<br><img src="/images/entries/2020-08-15-08-25-10.png" alt="人民币模板"></li>
+<li>美元模板：<br><img src="/images/entries/2020-08-15-08-26-15.png" alt="美元模板"></li>
+<li>为了减少代码量，继续利用辅助列：<br><img src="/images/entries/2020-08-15-08-42-43.png" alt="ID辅助列"></li>
+<li>辅助列的具体作用和公式如下：</li>
+</ul>
+<pre>
+'辅助列1 删除重复项以后的凭证号清单
+=entries!C2&entries!E2
+
+'辅助列2 该凭证的分录数量（行数）
+=COUNTIF(entries!M:M,id!A1)
+
+'辅助列3 该凭证的起始行号（首行为2）
+=B1+C1
+
+'辅助列4 该凭证的货币类型
+=IF(ISERROR(VLOOKUP(A1,entries!AC:AC,1,FALSE)),"CNY","USD")
+
+'辅助列5 需要打印的凭证总数
+=COUNTA(A:A)
+</pre>
+
+<ul>
+<li>编写如下VBA代码，代码量并不多，绝大部分仅仅是按指定单元格填写数据，详见注释：</li>
+</ul>
+<pre>
+Sub generate_voucher()
+' 自动打印财务凭证
+    '关闭窗口刷新
+    Application.ScreenUpdating = False
+    '指定打印文件的输出目录
+    ChDir "C:\MISC\Demo_FVouchers"
+    '获取凭证总数并循环打印
+    voucher_qty = Worksheets("id").Range("E1")
+    For voucher_seq = 1 To voucher_qty
+        voucher_currency = Worksheets("id").Range("D" & voucher_seq)
+        voucher_line_qty = Worksheets("id").Range("B" & voucher_seq)
+        voucher_line = Worksheets("id").Range("C" & voucher_seq)
+        voucher_sum = 0
+        '计算总金额
+        For i = 1 To voucher_line_qty
+            voucher_sum = voucher_sum + Worksheets("entries").Range("R" & voucher_line)
+            voucher_line = voucher_line + 1
+        Next
+        voucher_sum = voucher_sum
+        voucher_line = Worksheets("id").Range("C" & voucher_seq)
+        '判断货币种类并填写数据
+        If voucher_currency = "CNY" Then
+            Worksheets("sample_rmb").Range("C10") = voucher_sum
+            Worksheets("sample_rmb").Range("D10") = voucher_sum
+            Worksheets("sample_rmb").Range("B3") = "        日期：" & Format(Worksheets("entries").Range("B" & voucher_line), "yyyy-mm-dd")
+            Worksheets("sample_rmb").Range("D1") = Worksheets("entries").Range("Y" & voucher_line)
+            Worksheets("sample_rmb").Range("D2") = Worksheets("entries").Range("E" & voucher_line)
+            Worksheets("sample_rmb").Range("A11") = "过账人：" & Worksheets("entries").Range("J" & voucher_line)
+            Worksheets("sample_rmb").Range("B11") = "审核人：" & Worksheets("entries").Range("H" & voucher_line)
+            Worksheets("sample_rmb").Range("D11") = Worksheets("entries").Range("G" & voucher_line)
+            '计算该凭证页数（每页5行分录）
+            voucher_pages = Application.Ceiling(voucher_line_qty / 5, 1)
+            '分页打印
+            For p = 1 To voucher_pages
+                Worksheets("sample_rmb").Range("D3") = "第" & p & "页/共" & voucher_pages & "页"
+                Worksheets("sample_rmb").Range("A5:D9").ClearContents
+                For i = 1 To 5
+                    voucher_print_line = 4 + i
+                    Worksheets("sample_rmb").Range("A" & voucher_print_line) = Worksheets("entries").Range("K" & voucher_line)
+                    Worksheets("sample_rmb").Range("B" & voucher_print_line) = Worksheets("entries").Range("L" & voucher_line) & " - " & Worksheets("entries").Range("N" & voucher_line)
+                    Worksheets("sample_rmb").Range("C" & voucher_print_line) = Worksheets("entries").Range("R" & voucher_line)
+                    Worksheets("sample_rmb").Range("D" & voucher_print_line) = Worksheets("entries").Range("S" & voucher_line)
+                    voucher_line = voucher_line + 1
+                    voucher_line_qty = voucher_line_qty - 1
+                    If voucher_line_qty = 0 Then
+                        Exit For
+                    End If
+                Next
+                fname_line = voucher_line - 1
+                '统一页码格式，小于10的页码数字前补0
+                If p < 10 Then
+                    voucher_page = "0" & p
+                Else
+                    voucher_page = p
+                End If
+                voucher_fname = "Demo_FVoucher_" & Worksheets("entries").Range("M" & fname_line) & "_" & voucher_page
+                '将该凭证页面输出为PDF文件
+                Worksheets("sample_rmb").ExportAsFixedFormat Type:=xlTypePDF, Filename:=voucher_fname, Quality:=xlQualityStandard, IncludeDocProperties:=True, IgnorePrintAreas:=False, OpenAfterPublish:=False
+            Next
+        Else
+            Worksheets("sample_usd").Range("F10") = voucher_sum
+            Worksheets("sample_usd").Range("G10") = voucher_sum
+            Worksheets("sample_usd").Range("B3") = "     日期：" & Format(Worksheets("entries").Range("B" & voucher_line), "yyyy-mm-dd")
+            Worksheets("sample_usd").Range("G1") = Worksheets("entries").Range("Y" & voucher_line)
+            Worksheets("sample_usd").Range("G2") = Worksheets("entries").Range("E" & voucher_line)
+            Worksheets("sample_usd").Range("A11") = "过账人：" & Worksheets("entries").Range("J" & voucher_line)
+            Worksheets("sample_usd").Range("B11") = "审核人：" & Worksheets("entries").Range("H" & voucher_line)
+            Worksheets("sample_usd").Range("G11") = Worksheets("entries").Range("G" & voucher_line)
+            voucher_pages = Application.Ceiling(voucher_line_qty / 5, 1)
+            For p = 1 To voucher_pages
+                Worksheets("sample_usd").Range("G3") = "第" & p & "页/共" & voucher_pages & "页"
+                Worksheets("sample_usd").Range("A5:G9").ClearContents
+                For i = 1 To 5
+                    voucher_print_line = 4 + i
+                    Worksheets("sample_usd").Range("A" & voucher_print_line) = Worksheets("entries").Range("K" & voucher_line)
+                    Worksheets("sample_usd").Range("B" & voucher_print_line) = Worksheets("entries").Range("L" & voucher_line) & " - " & Worksheets("entries").Range("N" & voucher_line)
+                    Worksheets("sample_usd").Range("C" & voucher_print_line) = Worksheets("entries").Range("AB" & voucher_line)
+                    voucher_fxrate = Worksheets("entries").Range("Q" & voucher_line)
+                    If voucher_fxrate = 0 Then
+                        voucher_fxrate = 1
+                    End If
+                    Worksheets("sample_usd").Range("D" & voucher_print_line) = voucher_fxrate
+                    Worksheets("sample_usd").Range("E" & voucher_print_line) = Worksheets("entries").Range("P" & voucher_line)
+                    Worksheets("sample_usd").Range("F" & voucher_print_line) = Worksheets("entries").Range("R" & voucher_line)
+                    Worksheets("sample_usd").Range("G" & voucher_print_line) = Worksheets("entries").Range("S" & voucher_line)
+                    voucher_line = voucher_line + 1
+                    voucher_line_qty = voucher_line_qty - 1
+                    If voucher_line_qty = 0 Then
+                        Exit For
+                    End If
+                Next
+                fname_line = voucher_line - 1
+                If p < 10 Then
+                    voucher_page = "0" & p
+                Else
+                    voucher_page = p
+                End If
+                voucher_fname = "Demo_FVoucher_" & Worksheets("entries").Range("M" & fname_line) & "_" & voucher_page
+                Worksheets("sample_usd").ExportAsFixedFormat Type:=xlTypePDF, Filename:=voucher_fname, Quality:=xlQualityStandard, IncludeDocProperties:=True, IgnorePrintAreas:=False, OpenAfterPublish:=False
+            Next
+        End If
+    Next
+    '全部凭证打印完毕后，输出一个Done文件做标记
+    Worksheets("sample_rmb").ExportAsFixedFormat Type:=xlTypePDF, Filename:="Done", Quality:=xlQualityStandard, IncludeDocProperties:=True, IgnorePrintAreas:=False, OpenAfterPublish:=False
+End Sub
+</pre>
+
+<ul>
+<li>执行VBA程序后打印出的两个测试文件：<br><img src="/images/entries/2020-08-15-08-39-56.png" alt="测试文件结果"></li>
+<li>打印工作完成后，使用PDF编辑器自由合并凭证，即可打印为纸质单据进行归档了。</li>
+</ul>
+<h2 id="四、总结"><a href="#四、总结" class="headerlink" title="四、总结"></a>四、总结</h2><p>开篇已经说过，单纯使用程序来解决这个问题会更加简洁。但这篇记录想表达的是，一个看似复杂的问题，通过分解后，业余人员也能利用基本功来完成同样的目标。这些基本功是每一位自我评价“熟练使用Excel”的同学都应该掌握的，重点是勇于尝试和分析。</p>
+<p>整个问题的解决可以分为排序和打印两大部分，其中每一个细节问题的处理，特别是排序时需要掌握的功能，确实都是Excel的基本功能。</p>
+<p>在程序语言的选择上，Python确实好用也比较热门，但针对具体问题，还是应该选择合适的工具。此前在数万行Excel数据无法简单的规划求解，需要做无限逼近以及随机抓取时，Python发挥了优势。不过，处理相对简单、数据量不大的问题时，建议使用Office自带的VBA，学习成本低。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/excel/" rel="tag"># excel</a>
+              <a href="/tags/vba/" rel="tag"># vba</a>
+              <a href="/tags/sort/" rel="tag"># sort</a>
+              <a href="/tags/pdf/" rel="tag"># pdf</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/05/04/a-solution-to-ct-modem-and-iptv-box/" rel="prev" title="解决电信光猫和机顶盒软硬件限制的记录">
+      <i class="fa fa-chevron-left"></i> 解决电信光猫和机顶盒软硬件限制的记录
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0"><span class="nav-text">一、问题描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E8%A7%A3%E5%86%B3%E6%80%9D%E8%B7%AF"><span class="nav-text">二、解决思路</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%AD%9B%E9%80%89"><span class="nav-text">1. 筛选</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%88%86%E7%B1%BB%E5%92%8C%E5%88%86%E7%BB%84"><span class="nav-text">2. 分类和分组</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%8C%87%E5%AE%9A%E6%A0%BC%E5%BC%8F%E6%89%B9%E9%87%8F%E6%89%93%E5%8D%B0"><span class="nav-text">3. 指定格式批量打印</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%85%B6%E4%BB%96%E9%97%AE%E9%A2%98"><span class="nav-text">4. 其他问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E6%89%80%E9%9C%80%E7%9F%A5%E8%AF%86%E6%B1%87%E6%80%BB"><span class="nav-text">5. 所需知识汇总</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%85%B7%E4%BD%93%E6%93%8D%E4%BD%9C"><span class="nav-text">三、具体操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%A1%AE%E5%AE%9A%E6%8E%92%E5%BA%8F%E7%A7%8D%E7%B1%BB"><span class="nav-text">1. 确定排序种类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%88%A0%E9%99%A4%E6%97%A0%E5%85%B3%E5%87%AD%E8%AF%81"><span class="nav-text">2. 删除无关凭证</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%88%A4%E6%96%AD%E6%9D%83%E9%87%8D%E5%B9%B6%E6%8E%92%E5%BA%8F"><span class="nav-text">3. 判断权重并排序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E7%89%B9%E6%AE%8A%E6%83%85%E5%86%B5%E6%8E%92%E5%BA%8F"><span class="nav-text">4. 特殊情况排序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E6%89%93%E5%8D%B0%E8%BE%93%E5%87%BA"><span class="nav-text">5. 打印输出</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E6%80%BB%E7%BB%93"><span class="nav-text">四、总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ian Li</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="author" itemprop="copyrightHolder">Ian Li</span>
+</div>
+  <div class="powered-by"> 
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
