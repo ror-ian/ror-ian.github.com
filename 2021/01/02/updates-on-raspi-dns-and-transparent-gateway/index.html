@@ -78,6 +78,7 @@
 
   .use-motion .logo-line-before i { left: initial; }
   .use-motion .logo-line-after i { right: initial; }
+  pre { overflow:auto; }
   </style>
 </noscript>
 
@@ -353,7 +354,7 @@ After=systemd-modules-load.service local-fs.target ipset.service
 
 </li>
 </ul>
-<h2 id="三、DNS的配置"><a href="#三、DNS的配置" class="headerlink" title="三、DNS的配置"></a>三、DNS的配置</h2><p>DNS要考虑的核心问题有三个：避免污染、区分线路高速解析、保证正确解析境内外地址。尤其是第三点，因为一些大厂如Google、Apple和阿里，会根据不同的DNS服务器访问IP给出不同的服务器地址，而Apple的用户认证还频闭了大多数vps的ip，往往造成鉴权失败。</p>
+<h2 id="三、DNS的配置"><a href="#三、DNS的配置" class="headerlink" title="三、DNS的配置"></a>三、DNS的配置</h2><p>DNS要考虑的核心问题有三个：避免污染、区分线路高速解析、保证正确解析境内外地址。尤其是第三点，因为一些大厂如Google、Apple和阿里，会根据不同的DNS服务器访问IP给出不同的服务器地址，而Apple的用户认证还屏蔽了大多数vps的ip，往往造成鉴权失败。</p>
 <p>目前使用的方案是AdGuardHome + dnsmasq (china-list) + chinadns-ng + smartdns</p>
 <pre>
                                                          | Trusted Group (DoH)
