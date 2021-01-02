@@ -232,8 +232,8 @@ WantedBy=multi-user.target
 </ul>
 <h2 id="二、透明网关"><a href="#二、透明网关" class="headerlink" title="二、透明网关"></a>二、透明网关</h2><blockquote>
 <p>原始版本的trojan提供的是socks5，默认不支持redirect或tproxy方式的透明网关。解决办法有很多，例如redsocks、v2ray、clash和glider等工具进行转换。</p>
-</blockquote>
-<h3 id="1-配置glider"><a href="#1-配置glider" class="headerlink" title="1. 配置glider"></a>1. 配置glider</h3><ul>
+</blockquote><ul>
+<h3 id="1-配置glider"><a href="#1-配置glider" class="headerlink" title="1. 配置glider"></a>1. 配置glider</h3>
 <li>个人喜欢用glider转换为ss服务后再搭配ss-redir实现。主要是日常会使用ss建立一些境内通道方便使用（和openvpn一样，ss的境内通道不会受到wall的干扰）</li>
 <li>从<a target="_blank" rel="noopener" href="https://github.com/nadoo/glider/releases">https://github.com/nadoo/glider/releases</a>中下载armv7版本</li>
 <li>主程序放在/usr/local/bin，配置文件放在/etc/glider/server.conf，同样使用chown和chgrp修改为pi。server.conf内容如下<pre>
@@ -242,11 +242,9 @@ listen=:8443
 listen=ss://AES-256-CFB:yourpassword@:529
 # trojan的端口号527
 forward=socks5://127.0.0.1:527
-
-</li>
-</ul>
-<p>verbose=True<br></pre></p>
-<ul>
+#
+verbose=True
+</pre></li>
 <li>创建/etc/systemd/system/glider@server.service服务，After中添加trojan.service<pre>
 [Unit]
 Description=Glider Service (%i)
@@ -277,7 +275,7 @@ WantedBy=multi-user.target
 apt install shadowsocks-libev
 </pre></li>
 <li>因为我们需要的是ss-redir，关掉默认的shadowsocks-libev.service，并修改/usr/bin/ss-redir的拥有者和群组为pi</li>
-<li>创建/etc/systemd/system/ss-redir.service服务，After中添加<a href="mailto:&#x67;&#x6c;&#x69;&#x64;&#101;&#114;&#64;&#115;&#x65;&#114;&#118;&#101;&#x72;&#46;&#115;&#x65;&#x72;&#118;&#x69;&#99;&#101;">&#x67;&#x6c;&#x69;&#x64;&#101;&#114;&#64;&#115;&#x65;&#114;&#118;&#101;&#x72;&#46;&#115;&#x65;&#x72;&#118;&#x69;&#99;&#101;</a>和trojan.service<pre>
+<li>创建/etc/systemd/system/ss-redir.service服务，After中添加glider@server.service和trojan.service<pre>
 [Unit]
 Description=SS-Redir Service
 After=network.target glider@server.service trojan.service
@@ -362,12 +360,12 @@ After=systemd-modules-load.service local-fs.target ipset.service
 AdGuardHome --> dnsmasq --> chinadns-ng --> smartdns --> | 
 (AD filter)   (accelerate)  (addr match)    (fastest)    | Mainland Group (UDP)
 </pre>
-
-<h3 id="1-安装smartdns"><a href="#1-安装smartdns" class="headerlink" title="1. 安装smartdns"></a>1. 安装smartdns</h3><ul>
+<ul>
+<h3 id="1-安装smartdns"><a href="#1-安装smartdns" class="headerlink" title="1. 安装smartdns"></a>1. 安装smartdns</h3>
 <li>从<a target="_blank" rel="noopener" href="https://github.com/pymumu/smartdns/releases">https://github.com/pymumu/smartdns/releases</a>下载smartdns.xxxxxxxx.arm-debian-all.deb安装包，使用以下命令安装<pre>
 dpkg -i smartdns.xxxxxxxx.arm-debian-all.deb
 </pre></li>
-<li>修改配置文件/etc/smartdns/smartdns.conf<pre>
+<li>修改配置文件/etc/smartdns/smartdns.conf</li><pre>
 # chn组端口号为5304
 bind [::]:5304 -group chn
 # trusted组端口号为5308
@@ -382,7 +380,7 @@ server-https https://doh.opendns.com/dns-query -group trusted -exclude-default-g
 cache-size 4096
 log-level info
 </pre>
-<h3 id="2-安装chinadns-ng"><a href="#2-安装chinadns-ng" class="headerlink" title="2. 安装chinadns-ng"></a>2. 安装chinadns-ng</h3></li>
+<h3 id="2-安装chinadns-ng"><a href="#2-安装chinadns-ng" class="headerlink" title="2. 安装chinadns-ng"></a>2. 安装chinadns-ng</h3>
 <li>编译安装<pre>
 git clone https://github.com/zfl9/chinadns-ng
 cd chinadns-ng
@@ -424,10 +422,7 @@ cd AdGuardHome
 ./AdGuardHome -s install
 </pre></li>
 <li>访问<a target="_blank" rel="noopener" href="http://127.0.0.1:3000/%E8%BF%9B%E8%A1%8C%E5%AE%89%E8%A3%85%E9%85%8D%E7%BD%AE">http://127.0.0.1:3000/进行安装配置</a></li>
-<li>在DNS settings中将上游DNS服务器指向dnsmasq的5302端口<pre></li>
-</ul>
-<p>127.0.0.1:5302<br></pre></p>
-<ul>
+<li>在DNS settings中将上游DNS服务器指向dnsmasq的5302端口<pre>127.0.0.1:5302</pre></li>
 <li>修改/etc/systemd/system/AdGuardHome.service，After中添加dnsmasq.service<h3 id="5-针对Apple的额外配置"><a href="#5-针对Apple的额外配置" class="headerlink" title="5. 针对Apple的额外配置"></a>5. 针对Apple的额外配置</h3></li>
 <li>尽管dnsmasq-china-list已经针对Apple的国内服务进行了加速，例如云上贵州的存储。然而，Apple的用户鉴权服务仍然全部在美国，经过探测有以下几个域名，个人选择创建conf文件放到/etc/dnsmasq.d/<pre>
 server=/www.icloud.com/223.6.6.6
