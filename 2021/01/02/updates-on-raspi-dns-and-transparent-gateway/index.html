@@ -212,11 +212,24 @@ chgrp pi /usr/bin/trojan
 Description=trojan
 Documentation=man:trojan(1) https://trojan-gfw.github.io/trojan/config https://trojan-gfw.github.io/trojan/
 After=network.target network-online.target nss-lookup.target
+#
+[Service]
+Type=simple
+StandardError=journal
+User=pi
+Group=pi
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+ExecStart=/usr/bin/trojan -c /etc/trojan/config.json
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=1s
+#
+[Install]
+WantedBy=multi-user.target
+</pre>
 
 </li>
 </ul>
-<p>[Service]<br>Type=simple<br>StandardError=journal<br>User=pi<br>Group=pi<br>AmbientCapabilities=CAP_NET_BIND_SERVICE<br>ExecStart=/usr/bin/trojan -c /etc/trojan/config.json<br>ExecReload=/bin/kill -HUP $MAINPID<br>Restart=on-failure<br>RestartSec=1s</p>
-<p>[Install]<br>WantedBy=multi-user.target<br></pre></p>
 <h2 id="二、透明网关"><a href="#二、透明网关" class="headerlink" title="二、透明网关"></a>二、透明网关</h2><blockquote>
 <p>原始版本的trojan提供的是socks5，默认不支持redirect或tproxy方式的透明网关。解决办法有很多，例如redsocks、v2ray、clash和glider等工具进行转换。</p>
 </blockquote>
@@ -238,30 +251,55 @@ forward=socks5://127.0.0.1:527
 [Unit]
 Description=Glider Service (%i)
 After=network.target trojan.service
-
-</li>
-</ul>
-<p>[Service]<br>Type=simple<br>User=pi<br>Group=pi<br>Restart=always<br>LimitNOFILE=102400</p>
-<h1 id="NOTE-change-to-your-glider-path"><a href="#NOTE-change-to-your-glider-path" class="headerlink" title="NOTE: change to your glider path"></a>NOTE: change to your glider path</h1><p>ExecStart=/usr/local/bin/glider -config /etc/glider/%i.conf</p>
-<h1 id="work-with-systemd-v229-or-later-so-glider-can-listen-on-port-below-1024-with-none-root-user"><a href="#work-with-systemd-v229-or-later-so-glider-can-listen-on-port-below-1024-with-none-root-user" class="headerlink" title="work with systemd v229 or later, so glider can listen on port below 1024 with none-root user"></a>work with systemd v229 or later, so glider can listen on port below 1024 with none-root user</h1><h1 id="CAP-NET-ADMIN-ipset"><a href="#CAP-NET-ADMIN-ipset" class="headerlink" title="CAP_NET_ADMIN: ipset"></a>CAP_NET_ADMIN: ipset</h1><h1 id="CAP-NET-BIND-SERVICE-bind-ports-under-1024"><a href="#CAP-NET-BIND-SERVICE-bind-ports-under-1024" class="headerlink" title="CAP_NET_BIND_SERVICE: bind ports under 1024"></a>CAP_NET_BIND_SERVICE: bind ports under 1024</h1><p>CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE<br>AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE<br>NoNewPrivileges=true</p>
-<p>[Install]<br>WantedBy=multi-user.target<br></pre></p>
-<h3 id="2-配置ss-redir"><a href="#2-配置ss-redir" class="headerlink" title="2. 配置ss-redir"></a>2. 配置ss-redir</h3><ul>
+#
+[Service]
+Type=simple
+User=pi
+Group=pi
+Restart=always
+LimitNOFILE=102400
+#
+# NOTE: change to your glider path
+ExecStart=/usr/local/bin/glider -config /etc/glider/%i.conf
+#
+# work with systemd v229 or later, so glider can listen on port below 1024 with none-root user
+# CAP_NET_ADMIN: ipset
+# CAP_NET_BIND_SERVICE: bind ports under 1024
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
+NoNewPrivileges=true
+#
+[Install]
+WantedBy=multi-user.target
+</pre>
+<h3 id="2-配置ss-redir"><a href="#2-配置ss-redir" class="headerlink" title="2. 配置ss-redir"></a>2. 配置ss-redir</h3></li>
 <li>安装shadowsocks-libev<pre>
 apt install shadowsocks-libev
 </pre></li>
 <li>因为我们需要的是ss-redir，关掉默认的shadowsocks-libev.service，并修改/usr/bin/ss-redir的拥有者和群组为pi</li>
-<li>创建/etc/systemd/system/ss-redir.service服务，After中添加<a href="mailto:&#103;&#108;&#x69;&#x64;&#x65;&#x72;&#64;&#x73;&#x65;&#114;&#x76;&#101;&#x72;&#46;&#x73;&#x65;&#114;&#x76;&#x69;&#x63;&#101;">&#103;&#108;&#x69;&#x64;&#x65;&#x72;&#64;&#x73;&#x65;&#114;&#x76;&#101;&#x72;&#46;&#x73;&#x65;&#114;&#x76;&#x69;&#x63;&#101;</a>和trojan.service<pre>
+<li>创建/etc/systemd/system/ss-redir.service服务，After中添加<a href="mailto:&#x67;&#x6c;&#x69;&#x64;&#101;&#114;&#64;&#115;&#x65;&#114;&#118;&#101;&#x72;&#46;&#115;&#x65;&#x72;&#118;&#x69;&#99;&#101;">&#x67;&#x6c;&#x69;&#x64;&#101;&#114;&#64;&#115;&#x65;&#114;&#118;&#101;&#x72;&#46;&#115;&#x65;&#x72;&#118;&#x69;&#99;&#101;</a>和trojan.service<pre>
 [Unit]
 Description=SS-Redir Service
 After=network.target glider@server.service trojan.service
-
-</li>
-</ul>
-<p>[Service]<br>Type=simple<br>User=pi<br>Group=pi<br>Restart=always<br>LimitNOFILE=102400</p>
-<h1 id="NOTE-change-to-your-ss-redir-path"><a href="#NOTE-change-to-your-ss-redir-path" class="headerlink" title="NOTE: change to your ss-redir path"></a>NOTE: change to your ss-redir path</h1><h1 id="监听端口号为1080"><a href="#监听端口号为1080" class="headerlink" title="监听端口号为1080"></a>监听端口号为1080</h1><p>ExecStart=/usr/bin/ss-redir -s 127.0.0.1 -p 529 -b 0.0.0.0 -l 1080 -k yourpassword -m aes-256-cfb -u</p>
-<p>CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE<br>AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE<br>NoNewPrivileges=true</p>
-<p>[Install]<br>WantedBy=multi-user.target<br></pre></p>
-<ul>
+#
+[Service]
+Type=simple
+User=pi
+Group=pi
+Restart=always
+LimitNOFILE=102400
+#
+# NOTE: change to your ss-redir path
+# 监听端口号为1080
+ExecStart=/usr/bin/ss-redir -s 127.0.0.1 -p 529 -b 0.0.0.0 -l 1080 -k yourpassword -m aes-256-cfb -u
+#
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
+NoNewPrivileges=true
+#
+[Install]
+WantedBy=multi-user.target
+</pre></li>
 <li>通过以下命令可以查看运行是否准确<pre>
 top -u pi
 </pre></li>
@@ -280,12 +318,15 @@ ipset -R < chnroute.ipset
 Description=ipset persistent rule service
 ConditionFileNotEmpty=/root/dnstools/chinadns-ng/chnroute.ipset
 After=network.target
-
-</li>
-</ul>
-<p>[Service]<br>Type=oneshot<br>RemainAfterExit=true<br>ExecStart=/sbin/ipset -exist -file /root/dnstools/chinadns-ng/chnroute.ipset restore</p>
-<p>[Install]<br>WantedBy=multi-user.target<br></pre></p>
-<ul>
+#
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/sbin/ipset -exist -file /root/dnstools/chinadns-ng/chnroute.ipset restore
+#
+[Install]
+WantedBy=multi-user.target
+</pre></li>
 <li>配置sysctl开启net.ipv4.ip_forward=1</li>
 <li>iptables配置内容如下<pre>
 iptables -t nat -N SHADOWSOCKS
@@ -351,13 +392,18 @@ make && sudo make install
 [Unit]
 Description=ChinaDNS-ng Service
 After=network.target smartdns.service
-
-</li>
-</ul>
-<p>[Service]<br>Type=simple<br>Restart=always</p>
-<h1 id="使用端口号5303"><a href="#使用端口号5303" class="headerlink" title="使用端口号5303"></a>使用端口号5303</h1><p>ExecStart=/usr/local/bin/chinadns-ng -l 5303 -c 127.0.0.1#5304 -t 127.0.0.1#5308 -g /root/dnstools/chinadns-ng/gfwlist.txt -m /root/dnstools/chinadns-ng/chnlist.txt</p>
-<p>[Install]<br>WantedBy=multi-user.target<br></pre></p>
-<h3 id="3-安装dnsmasq-china-list"><a href="#3-安装dnsmasq-china-list" class="headerlink" title="3. 安装dnsmasq-china-list"></a>3. 安装dnsmasq-china-list</h3><ul>
+#
+[Service]
+Type=simple
+Restart=always
+#
+# 使用端口号5303
+ExecStart=/usr/local/bin/chinadns-ng -l 5303 -c 127.0.0.1#5304 -t 127.0.0.1#5308 -g /root/dnstools/chinadns-ng/gfwlist.txt -m /root/dnstools/chinadns-ng/chnlist.txt
+#
+[Install]
+WantedBy=multi-user.target
+</pre>
+<h3 id="3-安装dnsmasq-china-list"><a href="#3-安装dnsmasq-china-list" class="headerlink" title="3. 安装dnsmasq-china-list"></a>3. 安装dnsmasq-china-list</h3></li>
 <li>安装文件在<a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/install.sh">https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/install.sh</a></li>
 <li>具体配置文件在/etc/dnsmasq.d/，该目录下的conf文件都会在dnsmasq启动时自动全部加载</li>
 <li>创建chinadns-ng.conf<pre>
@@ -400,7 +446,8 @@ iptables -t nat -A SHADOWSOCKS -d 118.214.109.0/24 -j RETURN
 </li>
 </ul>
 <h2 id="四、搭建Wireguard方便外部访问"><a href="#四、搭建Wireguard方便外部访问" class="headerlink" title="四、搭建Wireguard方便外部访问"></a>四、搭建Wireguard方便外部访问</h2><ul>
-<li>树莓派平台暂不能直接apt install wireguard，需要编译<pre>
+<li><p>树莓派平台暂不能直接apt install wireguard，需要编译</p>
+<pre>
 # 安装依赖工具
 apt install libmnl-dev git
 apt install libelf-dev build-essential pkg-config
@@ -417,38 +464,54 @@ make -C wireguard-linux-compat/src install
 make -C wireguard-tools/src -j$(nproc)
 make -C wireguard-tools/src install
 </pre></li>
-<li>创建/lib/systemd/system/wg-quick@wg0.service</li>
-<li>配置文件在/etc/wireguard/wg0.conf<pre>
+<li><p>创建/lib/systemd/system/wg-quick@wg0.service</p>
+</li>
+<li><p>配置文件在/etc/wireguard/wg0.conf</p>
+<pre>
 [Interface]
 Address = 10.66.66.1/24,fd42:42:42::1/64
 ListenPort = 39770
 PrivateKey = server_privatekey
 PostUp = iptables -A FORWARD -i eth0 -o wg0 -j ACCEPT; iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 PostDown = iptables -D FORWARD -i eth0 -o wg0 -j ACCEPT; iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE; ip6tables -D FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
-
-</li>
-</ul>
-<h3 id="Client-ian-iphone"><a href="#Client-ian-iphone" class="headerlink" title="Client ian-iphone"></a>Client ian-iphone</h3><p>[Peer]<br>PublicKey = client1_publickey<br>PresharedKey = PresharedKey<br>AllowedIPs = 10.66.66.9/32,fd42:42:42::9/128</p>
-<h3 id="Client-ian-p5550"><a href="#Client-ian-p5550" class="headerlink" title="Client ian-p5550"></a>Client ian-p5550</h3><p>[Peer]<br>PublicKey = client2_publickey<br>PresharedKey = PresharedKey<br>AllowedIPs = 10.66.66.8/32,fd42:42:42::8/128<br></pre></p>
-<ul>
-<li>具体的key可以用以下方式获得，服务端配置文件写服务端的privatekey和客户端的publickey；客户端配置文件写服务端的publickey和客户端的privatekey<pre>
+#
+### Client ian-iphone
+[Peer]
+PublicKey = client1_publickey
+PresharedKey = PresharedKey
+AllowedIPs = 10.66.66.9/32,fd42:42:42::9/128
+#
+### Client ian-p5550
+[Peer]
+PublicKey = client2_publickey
+PresharedKey = PresharedKey
+AllowedIPs = 10.66.66.8/32,fd42:42:42::8/128
+</pre></li>
+<li><p>具体的key可以用以下方式获得，服务端配置文件写服务端的privatekey和客户端的publickey；客户端配置文件写服务端的publickey和客户端的privatekey</p>
+<pre>
 wg genkey | tee privatekey1 | wg pubkey > publickey1
 </pre></li>
-<li>wg的PresharedKey用于两端加密混淆，建议填写使用，两端保持一致<pre>
+<li><p>wg的PresharedKey用于两端加密混淆，建议填写使用，两端保持一致</p>
+<pre>
 wg genpsk > presharedkey
 </pre></li>
-<li>客户端配置文件举例<pre>
+<li><p>客户端配置文件举例</p>
+<pre>
 [Interface]
 PrivateKey = client1_privatekey
 Address = 10.66.66.9/32,fd42:42:42::9/128
 DNS = 10.66.66.1,10.66.66.1
-
+#
+[Peer]
+PublicKey = server_publickey
+PresharedKey = PresharedKey
+# Use Your Server IP
+Endpoint = xxx.xxx.xxx.xxx:39770
+AllowedIPs = 0.0.0.0/0,::/0
+</pre>
 </li>
-</ul>
-<p>[Peer]<br>PublicKey = server_publickey<br>PresharedKey = PresharedKey</p>
-<h1 id="Use-Your-Server-IP"><a href="#Use-Your-Server-IP" class="headerlink" title="Use Your Server IP"></a>Use Your Server IP</h1><p>Endpoint = xxx.xxx.xxx.xxx:39770<br>AllowedIPs = 0.0.0.0/0,::/0<br></pre></p>
-<ul>
-<li>The End -</li>
+<li><p>The End -</p>
+</li>
 </ul>
 
     </div>
@@ -534,7 +597,7 @@ DNS = 10.66.66.1,10.66.66.1
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E4%B8%BB%E8%A6%81%E9%80%9A%E9%81%93"><span class="nav-text">一、主要通道</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E9%80%8F%E6%98%8E%E7%BD%91%E5%85%B3"><span class="nav-text">二、透明网关</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E9%85%8D%E7%BD%AEglider"><span class="nav-text">1. 配置glider</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NOTE-change-to-your-glider-path"><span class="nav-text">NOTE: change to your glider path</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#work-with-systemd-v229-or-later-so-glider-can-listen-on-port-below-1024-with-none-root-user"><span class="nav-text">work with systemd v229 or later, so glider can listen on port below 1024 with none-root user</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CAP-NET-ADMIN-ipset"><span class="nav-text">CAP_NET_ADMIN: ipset</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CAP-NET-BIND-SERVICE-bind-ports-under-1024"><span class="nav-text">CAP_NET_BIND_SERVICE: bind ports under 1024</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E9%85%8D%E7%BD%AEss-redir"><span class="nav-text">2. 配置ss-redir</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NOTE-change-to-your-ss-redir-path"><span class="nav-text">NOTE: change to your ss-redir path</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%9B%91%E5%90%AC%E7%AB%AF%E5%8F%A3%E5%8F%B7%E4%B8%BA1080"><span class="nav-text">监听端口号为1080</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E9%85%8D%E7%BD%AEipset%E5%92%8Ciptables"><span class="nav-text">3. 配置ipset和iptables</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81DNS%E7%9A%84%E9%85%8D%E7%BD%AE"><span class="nav-text">三、DNS的配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%AE%89%E8%A3%85smartdns"><span class="nav-text">1. 安装smartdns</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%AE%89%E8%A3%85chinadns-ng"><span class="nav-text">2. 安装chinadns-ng</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E7%AB%AF%E5%8F%A3%E5%8F%B75303"><span class="nav-text">使用端口号5303</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%AE%89%E8%A3%85dnsmasq-china-list"><span class="nav-text">3. 安装dnsmasq-china-list</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%AE%89%E8%A3%85AdGuardHome"><span class="nav-text">4. 安装AdGuardHome</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E9%92%88%E5%AF%B9Apple%E7%9A%84%E9%A2%9D%E5%A4%96%E9%85%8D%E7%BD%AE"><span class="nav-text">5. 针对Apple的额外配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E6%90%AD%E5%BB%BAWireguard%E6%96%B9%E4%BE%BF%E5%A4%96%E9%83%A8%E8%AE%BF%E9%97%AE"><span class="nav-text">四、搭建Wireguard方便外部访问</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Client-ian-iphone"><span class="nav-text">Client ian-iphone</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Client-ian-p5550"><span class="nav-text">Client ian-p5550</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Use-Your-Server-IP"><span class="nav-text">Use Your Server IP</span></a></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E4%B8%BB%E8%A6%81%E9%80%9A%E9%81%93"><span class="nav-text">一、主要通道</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E9%80%8F%E6%98%8E%E7%BD%91%E5%85%B3"><span class="nav-text">二、透明网关</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E9%85%8D%E7%BD%AEglider"><span class="nav-text">1. 配置glider</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E9%85%8D%E7%BD%AEss-redir"><span class="nav-text">2. 配置ss-redir</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E9%85%8D%E7%BD%AEipset%E5%92%8Ciptables"><span class="nav-text">3. 配置ipset和iptables</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81DNS%E7%9A%84%E9%85%8D%E7%BD%AE"><span class="nav-text">三、DNS的配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%AE%89%E8%A3%85smartdns"><span class="nav-text">1. 安装smartdns</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%AE%89%E8%A3%85chinadns-ng"><span class="nav-text">2. 安装chinadns-ng</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%AE%89%E8%A3%85dnsmasq-china-list"><span class="nav-text">3. 安装dnsmasq-china-list</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%AE%89%E8%A3%85AdGuardHome"><span class="nav-text">4. 安装AdGuardHome</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E9%92%88%E5%AF%B9Apple%E7%9A%84%E9%A2%9D%E5%A4%96%E9%85%8D%E7%BD%AE"><span class="nav-text">5. 针对Apple的额外配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E6%90%AD%E5%BB%BAWireguard%E6%96%B9%E4%BE%BF%E5%A4%96%E9%83%A8%E8%AE%BF%E9%97%AE"><span class="nav-text">四、搭建Wireguard方便外部访问</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
