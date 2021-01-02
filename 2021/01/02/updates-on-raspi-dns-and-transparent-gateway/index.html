@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.ianly.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="5年前曾写过一篇“科学”使用树莓派的教程，尽管时间比较久，现在仍然在使用教程中的核心功能和思路，说明可靠性不错。不过由于各种不可描述的原因，部分工具已经停止维护，偶尔也会出现兼容性和奇怪的问题。这次利用假期在此前思路和近几年新工具的基础上推倒重来，各种服务之间的关系更加清晰，效率和稳定性有了进一步提高。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一些针对DNS和透明网关的更新">
+<meta property="og:url" content="https://blog.ianly.com/2021/01/02/updates-on-raspi-dns-and-transparent-gateway/index.html">
+<meta property="og:site_name" content="Ian&#39;s Blog">
+<meta property="og:description" content="5年前曾写过一篇“科学”使用树莓派的教程，尽管时间比较久，现在仍然在使用教程中的核心功能和思路，说明可靠性不错。不过由于各种不可描述的原因，部分工具已经停止维护，偶尔也会出现兼容性和奇怪的问题。这次利用假期在此前思路和近几年新工具的基础上推倒重来，各种服务之间的关系更加清晰，效率和稳定性有了进一步提高。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2021-01-02T06:29:30.000Z">
+<meta property="article:modified_time" content="2021-01-02T06:29:30.000Z">
+<meta property="article:author" content="Ian Li">
+<meta property="article:tag" content="raspi">
+<meta property="article:tag" content="dns">
+<meta property="article:tag" content="trojan">
+<meta property="article:tag" content="wireguard">
+<meta property="article:tag" content="gateway">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.ianly.com/2021/01/02/updates-on-raspi-dns-and-transparent-gateway/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>一些针对DNS和透明网关的更新 | Ian's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Ian's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.ianly.com/2021/01/02/updates-on-raspi-dns-and-transparent-gateway/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ian Li">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ian's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          一些针对DNS和透明网关的更新
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-01-02 14:29:30" itemprop="dateCreated datePublished" datetime="2021-01-02T14:29:30+08:00">2021-01-02</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>5年前曾写过一篇“科学”使用树莓派的教程，尽管时间比较久，现在仍然在使用教程中的核心功能和思路，说明可靠性不错。不过由于各种不可描述的原因，部分工具已经停止维护，偶尔也会出现兼容性和奇怪的问题。这次利用假期在此前思路和近几年新工具的基础上推倒重来，各种服务之间的关系更加清晰，效率和稳定性有了进一步提高。</p>
+</blockquote>
+<a id="more"></a>
+
+<p>不同于其他内容，这篇“科学”教程不能写的太细。但会争取把一些其他文章没有提到的关键内容说清楚，避免新手踩坑。</p>
+<h2 id="一、主要通道"><a href="#一、主要通道" class="headerlink" title="一、主要通道"></a>一、主要通道</h2><ul>
+<li>与vps之间的主要通道选择用trojan建立<pre>
+apt install trojan
+</pre></li>
+<li>配置文件放在/etc/trojan/config.json，具体内容参考vps服务端生成的内容。客户端配置的cert字段不建议留空，补全fullchain证书比较稳妥</li>
+<li>由于后续采用透明网关，主要通道相关服务统一通过pi用户运行，以便区分<pre>
+chown pi /usr/bin/trojan
+chgrp pi /usr/bin/trojan
+</pre></li>
+<li>创建/etc/systemd/system/trojan.service服务，注意After内容<pre>
+[Unit]
+Description=trojan
+Documentation=man:trojan(1) https://trojan-gfw.github.io/trojan/config https://trojan-gfw.github.io/trojan/
+After=network.target network-online.target nss-lookup.target
+
+</li>
+</ul>
+<p>[Service]<br>Type=simple<br>StandardError=journal<br>User=pi<br>Group=pi<br>AmbientCapabilities=CAP_NET_BIND_SERVICE<br>ExecStart=/usr/bin/trojan -c /etc/trojan/config.json<br>ExecReload=/bin/kill -HUP $MAINPID<br>Restart=on-failure<br>RestartSec=1s</p>
+<p>[Install]<br>WantedBy=multi-user.target<br></pre></p>
+<h2 id="二、透明网关"><a href="#二、透明网关" class="headerlink" title="二、透明网关"></a>二、透明网关</h2><blockquote>
+<p>原始版本的trojan提供的是socks5，默认不支持redirect或tproxy方式的透明网关。解决办法有很多，例如redsocks、v2ray、clash和glider等工具进行转换。</p>
+</blockquote>
+<h3 id="1-配置glider"><a href="#1-配置glider" class="headerlink" title="1. 配置glider"></a>1. 配置glider</h3><ul>
+<li>个人喜欢用glider转换为ss服务后再搭配ss-redir实现。主要是日常会使用ss建立一些境内通道方便使用（和openvpn一样，ss的境内通道不会受到wall的干扰）</li>
+<li>从<a target="_blank" rel="noopener" href="https://github.com/nadoo/glider/releases">https://github.com/nadoo/glider/releases</a>中下载armv7版本</li>
+<li>主程序放在/usr/local/bin，配置文件放在/etc/glider/server.conf，同样使用chown和chgrp修改为pi。server.conf内容如下<pre>
+listen=:8443
+# 转换为ss，工作端口号529
+listen=ss://AES-256-CFB:yourpassword@:529
+# trojan的端口号527
+forward=socks5://127.0.0.1:527
+
+</li>
+</ul>
+<p>verbose=True<br></pre></p>
+<ul>
+<li>创建/etc/systemd/system/glider@server.service服务，After中添加trojan.service<pre>
+[Unit]
+Description=Glider Service (%i)
+After=network.target trojan.service
+
+</li>
+</ul>
+<p>[Service]<br>Type=simple<br>User=pi<br>Group=pi<br>Restart=always<br>LimitNOFILE=102400</p>
+<h1 id="NOTE-change-to-your-glider-path"><a href="#NOTE-change-to-your-glider-path" class="headerlink" title="NOTE: change to your glider path"></a>NOTE: change to your glider path</h1><p>ExecStart=/usr/local/bin/glider -config /etc/glider/%i.conf</p>
+<h1 id="work-with-systemd-v229-or-later-so-glider-can-listen-on-port-below-1024-with-none-root-user"><a href="#work-with-systemd-v229-or-later-so-glider-can-listen-on-port-below-1024-with-none-root-user" class="headerlink" title="work with systemd v229 or later, so glider can listen on port below 1024 with none-root user"></a>work with systemd v229 or later, so glider can listen on port below 1024 with none-root user</h1><h1 id="CAP-NET-ADMIN-ipset"><a href="#CAP-NET-ADMIN-ipset" class="headerlink" title="CAP_NET_ADMIN: ipset"></a>CAP_NET_ADMIN: ipset</h1><h1 id="CAP-NET-BIND-SERVICE-bind-ports-under-1024"><a href="#CAP-NET-BIND-SERVICE-bind-ports-under-1024" class="headerlink" title="CAP_NET_BIND_SERVICE: bind ports under 1024"></a>CAP_NET_BIND_SERVICE: bind ports under 1024</h1><p>CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE<br>AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE<br>NoNewPrivileges=true</p>
+<p>[Install]<br>WantedBy=multi-user.target<br></pre></p>
+<h3 id="2-配置ss-redir"><a href="#2-配置ss-redir" class="headerlink" title="2. 配置ss-redir"></a>2. 配置ss-redir</h3><ul>
+<li>安装shadowsocks-libev<pre>
+apt install shadowsocks-libev
+</pre></li>
+<li>因为我们需要的是ss-redir，关掉默认的shadowsocks-libev.service，并修改/usr/bin/ss-redir的拥有者和群组为pi</li>
+<li>创建/etc/systemd/system/ss-redir.service服务，After中添加<a href="mailto:&#103;&#108;&#x69;&#x64;&#x65;&#x72;&#64;&#x73;&#x65;&#114;&#x76;&#101;&#x72;&#46;&#x73;&#x65;&#114;&#x76;&#x69;&#x63;&#101;">&#103;&#108;&#x69;&#x64;&#x65;&#x72;&#64;&#x73;&#x65;&#114;&#x76;&#101;&#x72;&#46;&#x73;&#x65;&#114;&#x76;&#x69;&#x63;&#101;</a>和trojan.service<pre>
+[Unit]
+Description=SS-Redir Service
+After=network.target glider@server.service trojan.service
+
+</li>
+</ul>
+<p>[Service]<br>Type=simple<br>User=pi<br>Group=pi<br>Restart=always<br>LimitNOFILE=102400</p>
+<h1 id="NOTE-change-to-your-ss-redir-path"><a href="#NOTE-change-to-your-ss-redir-path" class="headerlink" title="NOTE: change to your ss-redir path"></a>NOTE: change to your ss-redir path</h1><h1 id="监听端口号为1080"><a href="#监听端口号为1080" class="headerlink" title="监听端口号为1080"></a>监听端口号为1080</h1><p>ExecStart=/usr/bin/ss-redir -s 127.0.0.1 -p 529 -b 0.0.0.0 -l 1080 -k yourpassword -m aes-256-cfb -u</p>
+<p>CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE<br>AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE<br>NoNewPrivileges=true</p>
+<p>[Install]<br>WantedBy=multi-user.target<br></pre></p>
+<ul>
+<li>通过以下命令可以查看运行是否准确<pre>
+top -u pi
+</pre></li>
+<li>正确显示为<pre>
+PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+638 pi        20   0   38640  22480   7120 S   0.0   0.6   0:31.52 trojan
+639 pi        20   0  800472  12576   3968 S   0.0   0.3   0:37.07 glider
+640 pi        20   0    4764   2812   2228 S   0.0   0.1   0:21.47 ss-redir
+</pre>
+<h3 id="3-配置ipset和iptables"><a href="#3-配置ipset和iptables" class="headerlink" title="3. 配置ipset和iptables"></a>3. 配置ipset和iptables</h3></li>
+<li>ipset中配置chnroute，用于识别线路，内容来自于chinadns-ng<pre>
+ipset -R < chnroute.ipset
+</pre></li>
+<li>创建/etc/systemd/system/ipset.service服务实现重启后自动加载，注意ConditionFileNotEmpty和After<pre>
+[Unit]
+Description=ipset persistent rule service
+ConditionFileNotEmpty=/root/dnstools/chinadns-ng/chnroute.ipset
+After=network.target
+
+</li>
+</ul>
+<p>[Service]<br>Type=oneshot<br>RemainAfterExit=true<br>ExecStart=/sbin/ipset -exist -file /root/dnstools/chinadns-ng/chnroute.ipset restore</p>
+<p>[Install]<br>WantedBy=multi-user.target<br></pre></p>
+<ul>
+<li>配置sysctl开启net.ipv4.ip_forward=1</li>
+<li>iptables配置内容如下<pre>
+iptables -t nat -N SHADOWSOCKS
+iptables -t nat -A PREROUTING -p tcp -j SHADOWSOCKS
+# 排除pi用户的访问（也即trojan、glider和ss-redir），用户uid通过id username查看
+iptables -t nat -A OUTPUT -p tcp -m owner ! --uid-owner 1000 -j SHADOWSOCKS
+# 排除Lan
+iptables -t nat -A SHADOWSOCKS -d 0.0.0.0/8 -j RETURN
+iptables -t nat -A SHADOWSOCKS -d 10.0.0.0/8 -j RETURN
+iptables -t nat -A SHADOWSOCKS -d 127.0.0.0/8 -j RETURN
+iptables -t nat -A SHADOWSOCKS -d 169.254.0.0/16 -j RETURN
+iptables -t nat -A SHADOWSOCKS -d 172.16.0.0/16 -j RETURN
+iptables -t nat -A SHADOWSOCKS -d 192.168.0.0/16 -j RETURN
+iptables -t nat -A SHADOWSOCKS -d 224.0.0.0/4 -j RETURN
+iptables -t nat -A SHADOWSOCKS -d 240.0.0.0/4 -j RETURN
+# 排除本机到vps的访问
+iptables -t nat -A SHADOWSOCKS -s 127.0.0.1/32 -d xxx.xxx.xxx.xxx/32 -j RETURN
+# 通过ipset中的chnroute判断国内ip
+iptables -t nat -A SHADOWSOCKS -p tcp -m set --match-set chnroute dst -j RETURN
+# 其他访问走ss-redir的1080端口（后续可信dns通过DoT和DoH实现）
+iptables -t nat -A SHADOWSOCKS -p tcp -j REDIRECT --to-ports 1080
+</pre></li>
+<li>修改/lib/systemd/system/netfilter-persistent.service服务，在After中增加ipset.service，否则在ipset.service运行完毕之前，iptables-restore会因为找不到ipset chnroute而恢复失败<pre>
+After=systemd-modules-load.service local-fs.target ipset.service
+</pre>
+
+</li>
+</ul>
+<h2 id="三、DNS的配置"><a href="#三、DNS的配置" class="headerlink" title="三、DNS的配置"></a>三、DNS的配置</h2><p>DNS要考虑的核心问题有三个：避免污染、区分线路高速解析、保证正确解析境内外地址。尤其是第三点，因为一些大厂如Google、Apple和阿里，会根据不同的DNS服务器访问IP给出不同的服务器地址，而Apple的用户认证还频闭了大多数vps的ip，往往造成鉴权失败。</p>
+<p>目前使用的方案是AdGuardHome + dnsmasq (china-list) + chinadns-ng + smartdns</p>
+<pre>
+                                                         | Trusted Group (DoH)
+AdGuardHome --> dnsmasq --> chinadns-ng --> smartdns --> | 
+(AD filter)   (accelerate)  (addr match)    (fastest)    | Mainland Group (UDP)
+</pre>
+
+<h3 id="1-安装smartdns"><a href="#1-安装smartdns" class="headerlink" title="1. 安装smartdns"></a>1. 安装smartdns</h3><ul>
+<li>从<a target="_blank" rel="noopener" href="https://github.com/pymumu/smartdns/releases">https://github.com/pymumu/smartdns/releases</a>下载smartdns.xxxxxxxx.arm-debian-all.deb安装包，使用以下命令安装<pre>
+dpkg -i smartdns.xxxxxxxx.arm-debian-all.deb
+</pre></li>
+<li>修改配置文件/etc/smartdns/smartdns.conf<pre>
+# chn组端口号为5304
+bind [::]:5304 -group chn
+# trusted组端口号为5308
+bind [::]:5308 -group trusted
+# chn组走国内DNS，杭州走阿里的223.6.6.6比114更快
+server 223.6.6.6 -group chn -exclude-default-group
+server 114.114.114.114 -group chn -exclude-default-group
+# trusted组走DoT和DoH解析，这里采用Google和OpenDNS的
+server-tls 8.8.8.8:853 -group trusted -exclude-default-group
+server-https https://dns.google/dns-query -group trusted -exclude-default-group
+server-https https://doh.opendns.com/dns-query -group trusted -exclude-default-group
+cache-size 4096
+log-level info
+</pre>
+<h3 id="2-安装chinadns-ng"><a href="#2-安装chinadns-ng" class="headerlink" title="2. 安装chinadns-ng"></a>2. 安装chinadns-ng</h3></li>
+<li>编译安装<pre>
+git clone https://github.com/zfl9/chinadns-ng
+cd chinadns-ng
+make && sudo make install
+</pre></li>
+<li>创建/etc/systemd/system/chinadns-ng.service服务，After中添加smartdns.service<pre>
+[Unit]
+Description=ChinaDNS-ng Service
+After=network.target smartdns.service
+
+</li>
+</ul>
+<p>[Service]<br>Type=simple<br>Restart=always</p>
+<h1 id="使用端口号5303"><a href="#使用端口号5303" class="headerlink" title="使用端口号5303"></a>使用端口号5303</h1><p>ExecStart=/usr/local/bin/chinadns-ng -l 5303 -c 127.0.0.1#5304 -t 127.0.0.1#5308 -g /root/dnstools/chinadns-ng/gfwlist.txt -m /root/dnstools/chinadns-ng/chnlist.txt</p>
+<p>[Install]<br>WantedBy=multi-user.target<br></pre></p>
+<h3 id="3-安装dnsmasq-china-list"><a href="#3-安装dnsmasq-china-list" class="headerlink" title="3. 安装dnsmasq-china-list"></a>3. 安装dnsmasq-china-list</h3><ul>
+<li>安装文件在<a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/install.sh">https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/install.sh</a></li>
+<li>具体配置文件在/etc/dnsmasq.d/，该目录下的conf文件都会在dnsmasq启动时自动全部加载</li>
+<li>创建chinadns-ng.conf<pre>
+# 使用端口号5302
+port=5302
+no-resolv
+cache-size=1000
+# 上游指向chinadns-ng的5303
+server=127.0.0.1#5303
+clear-on-reload
+</pre></li>
+<li>修改/lib/systemd/system/dnsmasq.service，After中添加smartdns.service和chinadns-ng.service<h3 id="4-安装AdGuardHome"><a href="#4-安装AdGuardHome" class="headerlink" title="4. 安装AdGuardHome"></a>4. 安装AdGuardHome</h3></li>
+<li>下载安装<pre>
+cd $HOME
+wget https://static.adguard.com/adguardhome/release/AdGuardHome_linux_arm.tar.gz
+tar xvf AdGuardHome_linux_arm.tar.gz
+cd AdGuardHome
+./AdGuardHome -s install
+</pre></li>
+<li>访问<a target="_blank" rel="noopener" href="http://127.0.0.1:3000/%E8%BF%9B%E8%A1%8C%E5%AE%89%E8%A3%85%E9%85%8D%E7%BD%AE">http://127.0.0.1:3000/进行安装配置</a></li>
+<li>在DNS settings中将上游DNS服务器指向dnsmasq的5302端口<pre></li>
+</ul>
+<p>127.0.0.1:5302<br></pre></p>
+<ul>
+<li>修改/etc/systemd/system/AdGuardHome.service，After中添加dnsmasq.service<h3 id="5-针对Apple的额外配置"><a href="#5-针对Apple的额外配置" class="headerlink" title="5. 针对Apple的额外配置"></a>5. 针对Apple的额外配置</h3></li>
+<li>尽管dnsmasq-china-list已经针对Apple的国内服务进行了加速，例如云上贵州的存储。然而，Apple的用户鉴权服务仍然全部在美国，经过探测有以下几个域名，个人选择创建conf文件放到/etc/dnsmasq.d/<pre>
+server=/www.icloud.com/223.6.6.6
+server=/appleid.apple.com/223.6.6.6
+server=/idmsa.apple.com/223.6.6.6
+server=/appleid.cdn-apple.com/223.6.6.6
+</pre></li>
+<li>由于vps的ip被Apple屏蔽，会导致页面正确打开，但鉴权死活fail的情况，这个问题基本上Apple商店的“天才们”也是弄不清楚的。在iptables中排除后问题解决<pre>
+iptables -t nat -A SHADOWSOCKS -d 17.137.166.0/24 -j RETURN
+iptables -t nat -A SHADOWSOCKS -d 17.141.5.0/24 -j RETURN
+iptables -t nat -A SHADOWSOCKS -d 17.151.240.0/24 -j RETURN
+iptables -t nat -A SHADOWSOCKS -d 17.253.144.0/24 -j RETURN
+iptables -t nat -A SHADOWSOCKS -d 118.214.109.0/24 -j RETURN
+</pre>
+
+</li>
+</ul>
+<h2 id="四、搭建Wireguard方便外部访问"><a href="#四、搭建Wireguard方便外部访问" class="headerlink" title="四、搭建Wireguard方便外部访问"></a>四、搭建Wireguard方便外部访问</h2><ul>
+<li>树莓派平台暂不能直接apt install wireguard，需要编译<pre>
+# 安装依赖工具
+apt install libmnl-dev git
+apt install libelf-dev build-essential pkg-config
+# 安装内核头文件（编译内核用）
+apt install raspberrypi-kernel-headers
+# 获取文件
+cd  /usr/local/src
+git clone https://git.zx2c4.com/wireguard-linux-compat
+git clone https://git.zx2c4.com/wireguard-tools
+# 编译安装module
+make -C wireguard-linux-compat/src -j$(nproc)
+make -C wireguard-linux-compat/src install
+# 编译安装wireguard
+make -C wireguard-tools/src -j$(nproc)
+make -C wireguard-tools/src install
+</pre></li>
+<li>创建/lib/systemd/system/wg-quick@wg0.service</li>
+<li>配置文件在/etc/wireguard/wg0.conf<pre>
+[Interface]
+Address = 10.66.66.1/24,fd42:42:42::1/64
+ListenPort = 39770
+PrivateKey = server_privatekey
+PostUp = iptables -A FORWARD -i eth0 -o wg0 -j ACCEPT; iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+PostDown = iptables -D FORWARD -i eth0 -o wg0 -j ACCEPT; iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE; ip6tables -D FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+
+</li>
+</ul>
+<h3 id="Client-ian-iphone"><a href="#Client-ian-iphone" class="headerlink" title="Client ian-iphone"></a>Client ian-iphone</h3><p>[Peer]<br>PublicKey = client1_publickey<br>PresharedKey = PresharedKey<br>AllowedIPs = 10.66.66.9/32,fd42:42:42::9/128</p>
+<h3 id="Client-ian-p5550"><a href="#Client-ian-p5550" class="headerlink" title="Client ian-p5550"></a>Client ian-p5550</h3><p>[Peer]<br>PublicKey = client2_publickey<br>PresharedKey = PresharedKey<br>AllowedIPs = 10.66.66.8/32,fd42:42:42::8/128<br></pre></p>
+<ul>
+<li>具体的key可以用以下方式获得，服务端配置文件写服务端的privatekey和客户端的publickey；客户端配置文件写服务端的publickey和客户端的privatekey<pre>
+wg genkey | tee privatekey1 | wg pubkey > publickey1
+</pre></li>
+<li>wg的PresharedKey用于两端加密混淆，建议填写使用，两端保持一致<pre>
+wg genpsk > presharedkey
+</pre></li>
+<li>客户端配置文件举例<pre>
+[Interface]
+PrivateKey = client1_privatekey
+Address = 10.66.66.9/32,fd42:42:42::9/128
+DNS = 10.66.66.1,10.66.66.1
+
+</li>
+</ul>
+<p>[Peer]<br>PublicKey = server_publickey<br>PresharedKey = PresharedKey</p>
+<h1 id="Use-Your-Server-IP"><a href="#Use-Your-Server-IP" class="headerlink" title="Use Your Server IP"></a>Use Your Server IP</h1><p>Endpoint = xxx.xxx.xxx.xxx:39770<br>AllowedIPs = 0.0.0.0/0,::/0<br></pre></p>
+<ul>
+<li>The End -</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/raspi/" rel="tag"># raspi</a>
+              <a href="/tags/dns/" rel="tag"># dns</a>
+              <a href="/tags/trojan/" rel="tag"># trojan</a>
+              <a href="/tags/wireguard/" rel="tag"># wireguard</a>
+              <a href="/tags/gateway/" rel="tag"># gateway</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/08/15/use-basic-excel-functions-and-vba-in-solving-problems/" rel="prev" title="熟练使用Excel基本功可以解决怎样的问题？">
+      <i class="fa fa-chevron-left"></i> 熟练使用Excel基本功可以解决怎样的问题？
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E4%B8%BB%E8%A6%81%E9%80%9A%E9%81%93"><span class="nav-text">一、主要通道</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E9%80%8F%E6%98%8E%E7%BD%91%E5%85%B3"><span class="nav-text">二、透明网关</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E9%85%8D%E7%BD%AEglider"><span class="nav-text">1. 配置glider</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NOTE-change-to-your-glider-path"><span class="nav-text">NOTE: change to your glider path</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#work-with-systemd-v229-or-later-so-glider-can-listen-on-port-below-1024-with-none-root-user"><span class="nav-text">work with systemd v229 or later, so glider can listen on port below 1024 with none-root user</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CAP-NET-ADMIN-ipset"><span class="nav-text">CAP_NET_ADMIN: ipset</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CAP-NET-BIND-SERVICE-bind-ports-under-1024"><span class="nav-text">CAP_NET_BIND_SERVICE: bind ports under 1024</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E9%85%8D%E7%BD%AEss-redir"><span class="nav-text">2. 配置ss-redir</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NOTE-change-to-your-ss-redir-path"><span class="nav-text">NOTE: change to your ss-redir path</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%9B%91%E5%90%AC%E7%AB%AF%E5%8F%A3%E5%8F%B7%E4%B8%BA1080"><span class="nav-text">监听端口号为1080</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E9%85%8D%E7%BD%AEipset%E5%92%8Ciptables"><span class="nav-text">3. 配置ipset和iptables</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81DNS%E7%9A%84%E9%85%8D%E7%BD%AE"><span class="nav-text">三、DNS的配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%AE%89%E8%A3%85smartdns"><span class="nav-text">1. 安装smartdns</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%AE%89%E8%A3%85chinadns-ng"><span class="nav-text">2. 安装chinadns-ng</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E7%AB%AF%E5%8F%A3%E5%8F%B75303"><span class="nav-text">使用端口号5303</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%AE%89%E8%A3%85dnsmasq-china-list"><span class="nav-text">3. 安装dnsmasq-china-list</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%AE%89%E8%A3%85AdGuardHome"><span class="nav-text">4. 安装AdGuardHome</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E9%92%88%E5%AF%B9Apple%E7%9A%84%E9%A2%9D%E5%A4%96%E9%85%8D%E7%BD%AE"><span class="nav-text">5. 针对Apple的额外配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E6%90%AD%E5%BB%BAWireguard%E6%96%B9%E4%BE%BF%E5%A4%96%E9%83%A8%E8%AE%BF%E9%97%AE"><span class="nav-text">四、搭建Wireguard方便外部访问</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Client-ian-iphone"><span class="nav-text">Client ian-iphone</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Client-ian-p5550"><span class="nav-text">Client ian-p5550</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Use-Your-Server-IP"><span class="nav-text">Use Your Server IP</span></a></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ian Li</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="author" itemprop="copyrightHolder">Ian Li</span>
+</div>
+  <div class="powered-by"> 
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
